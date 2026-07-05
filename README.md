@@ -82,10 +82,12 @@ garantiza el **RLS** de Supabase, no la UI.
       sistemas), autosave con debounce, validación y envío que bloquea el
       reporte en solo lectura.
 - [x] **Fase 3 — Consolidado** (`/consolidado`, `/reportes/[codigo]`): KPIs,
-      mapa de calor por región, tabla regional (vista `v_consolidado_regional`),
-      riesgos por severidad (vista `v_severidad_riesgos`), agenda de temas,
-      exportación CSV (`;` + BOM) e impresión. Detalle de reporte con acciones
-      de validar y devolver a borrador (central/admin).
+      panel gráfico (dona de semáforos nacional, barras de cobertura por región,
+      barras apiladas de estado por región), mapa de calor por región, tabla
+      regional (vista `v_consolidado_regional`), riesgos por severidad (vista
+      `v_severidad_riesgos`), agenda de temas, exportación CSV (`;` + BOM) e
+      impresión. Detalle de reporte con acciones de validar y devolver a
+      borrador (central/admin).
 - [x] **Fase 4 — Administración** (`/admin`): crear usuarios con correo +
       departamento (rol por defecto enlace; también central/admin), listar y
       eliminar usuarios. Usa el service role solo en server actions. (El

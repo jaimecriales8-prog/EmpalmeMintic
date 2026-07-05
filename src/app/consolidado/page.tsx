@@ -3,6 +3,7 @@ import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
 import { AccionesConsolidado } from "@/components/consolidado/acciones-consolidado";
+import { GraficosConsolidado } from "@/components/consolidado/graficos";
 import {
   DIMS,
   SEM_ETIQUETA,
@@ -128,6 +129,31 @@ export default async function ConsolidadoPage() {
     })
     .sort((a, b) => (ORDEN_PLAZO[a.plazo ?? ""] ?? 9) - (ORDEN_PLAZO[b.plazo ?? ""] ?? 9));
 
+  // ---- Distribución de semáforos (nacional y por región) para gráficos ----
+  const distNacional = { critico: 0, riesgo: 0, estable: 0 };
+  const distRegionMap = new Map<string, { critico: number; riesgo: number; estable: number }>();
+  reportes.forEach((r) => {
+    const reg = depByCodigo.get(r.departamento_codigo)?.region ?? "Sin región";
+    if (!distRegionMap.has(reg)) distRegionMap.set(reg, { critico: 0, riesgo: 0, estable: 0 });
+    DIMS.forEach((d) => {
+      const v = (r as Record<string, unknown>)[`sem_${d}`];
+      if (v === "critico" || v === "riesgo" || v === "estable") {
+        distNacional[v]++;
+        distRegionMap.get(reg)![v]++;
+      }
+    });
+  });
+  const coberturaGrafico = ordenarRegiones(
+    regional.filter((x) => (x.departamentos_reportados ?? 0) > 0).map((x) => x.region ?? ""),
+  ).map((reg) => {
+    const row = regional.find((x) => x.region === reg)!;
+    return { region: reg, c4: row.prom_cobertura_4g, c5: row.prom_cobertura_5g, hogares: row.prom_hogares_internet };
+  });
+  const semaforoRegionGrafico = ordenarRegiones([...distRegionMap.keys()]).map((reg) => ({
+    region: reg,
+    dist: distRegionMap.get(reg)!,
+  }));
+
   // ---- Filas CSV ----
   const regionRank = (reg: string) => {
     const i = ORDEN_REGIONES.indexOf(reg);
@@ -219,6 +245,13 @@ export default async function ConsolidadoPage() {
                 </div>
               ))}
             </div>
+
+            {/* Panel gráfico */}
+            <GraficosConsolidado
+              distNacional={distNacional}
+              cobertura={coberturaGrafico}
+              semaforoRegion={semaforoRegionGrafico}
+            />
 
             {/* Mapa de calor */}
             <Bloque titulo="Mapa de calor · Semáforos por departamento" hint="Agrupado por región">
