@@ -77,9 +77,11 @@ garantiza el **RLS** de Supabase, no la UI.
       riesgos por severidad (vista `v_severidad_riesgos`), agenda de temas,
       exportación CSV (`;` + BOM) e impresión. Detalle de reporte con acciones
       de validar y devolver a borrador (central/admin).
-- [ ] **Fase 4 — Administración** (`/admin`): crear usuarios por correo y
-      asignar rol y departamento. (El importador de JSON legado se descartó:
-      nunca se generaron archivos con el instrumento HTML anterior.)
+- [x] **Fase 4 — Administración** (`/admin`): crear usuarios con correo +
+      departamento (rol por defecto enlace; también central/admin), listar y
+      eliminar usuarios. Usa el service role solo en server actions. (El
+      importador de JSON legado se descartó: nunca se generaron archivos con el
+      instrumento HTML anterior.)
 - [ ] **Fase 5 — Calidad y despliegue**
 
 ## Documentación
