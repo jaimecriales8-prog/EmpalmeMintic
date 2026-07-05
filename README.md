@@ -65,6 +65,7 @@ ingresa en `/login` con ese correo y contraseña. También existe la opción de
 | `/login` | público | Ingreso por correo + contraseña (o enlace mágico) |
 | `/formulario` | enlace | Instrumento del departamento propio |
 | `/consolidado` | central, admin | Dashboard regional |
+| `/analisis` | central, admin | Análisis por nivel (nacional/regional/departamental) |
 | `/reportes/[codigo]` | central, admin | Detalle de un reporte |
 | `/admin` | admin | Gestión de perfiles |
 

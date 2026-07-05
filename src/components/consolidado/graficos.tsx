@@ -25,8 +25,8 @@ function Bloque({ titulo, hint, children }: { titulo: string; hint?: string; chi
   );
 }
 
-// Dona de distribución de semáforos (nacional).
-function Dona({ dist }: { dist: Dist }) {
+// Dona de distribución de semáforos.
+export function Dona({ dist }: { dist: Dist }) {
   const total = dist.critico + dist.riesgo + dist.estable;
   const R = 54;
   const C = 2 * Math.PI * R;
@@ -80,7 +80,7 @@ function Dona({ dist }: { dist: Dist }) {
 }
 
 // Barra horizontal 0-100 con etiqueta y valor.
-function Barra({ label, valor, color }: { label: string; valor: number | null; color: string }) {
+export function Barra({ label, valor, color }: { label: string; valor: number | null; color: string }) {
   const v = valor === null || valor === undefined ? null : Number(valor);
   return (
     <div className="flex items-center gap-2.5">

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
 import { AccionesConsolidado } from "@/components/consolidado/acciones-consolidado";
 import { GraficosConsolidado } from "@/components/consolidado/graficos";
+import { NavCentral } from "@/components/nav-central";
 import {
   DIMS,
   SEM_ETIQUETA,
@@ -228,6 +229,7 @@ export default async function ConsolidadoPage() {
       </Masthead>
 
       <main className="mx-auto grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
+        <NavCentral activo="consolidado" />
         {reportes.length === 0 ? (
           <div className="rounded-xl border border-line bg-card p-10 text-center text-steel">
             Aún no hay reportes enviados. Cuando un enlace envíe su reporte, aparecerá aquí al instante.
