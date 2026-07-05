@@ -69,10 +69,7 @@ export async function crearUsuario(input: {
   }
 
   revalidatePath("/admin");
-  return {
-    ok: true,
-    mensaje: `Listo. ${correo} ya puede ingresar con enlace mágico${departamento ? "" : ""}.`,
-  };
+  return { ok: true, mensaje: `Listo. ${correo} ya puede ingresar con enlace mágico.` };
 }
 
 // Elimina un usuario (perfil + cuenta de auth).

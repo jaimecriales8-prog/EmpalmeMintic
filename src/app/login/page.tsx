@@ -9,6 +9,12 @@ export default function LoginPage() {
   const [correo, setCorreo] = useState("");
   const [estado, setEstado] = useState<Estado>("inicial");
   const [error, setError] = useState("");
+  const [avisoEnlace] = useState(() =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("error") === "enlace_invalido"
+      ? "El enlace de acceso no es válido o ya expiró. Solicite uno nuevo a continuación."
+      : "",
+  );
 
   async function enviarEnlace(e: React.FormEvent) {
     e.preventDefault();
@@ -68,6 +74,11 @@ export default function LoginPage() {
             </div>
           ) : (
             <form onSubmit={enviarEnlace} className="flex flex-col gap-4">
+              {avisoEnlace && (
+                <p className="rounded-md bg-ambar-bg px-3 py-2 text-sm text-ambar">
+                  {avisoEnlace}
+                </p>
+              )}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="correo" className="etiqueta">
                   Correo institucional

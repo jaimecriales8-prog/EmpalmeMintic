@@ -82,7 +82,12 @@ garantiza el **RLS** de Supabase, no la UI.
       eliminar usuarios. Usa el service role solo en server actions. (El
       importador de JSON legado se descartó: nunca se generaron archivos con el
       instrumento HTML anterior.)
-- [ ] **Fase 5 — Calidad y despliegue**
+- [x] **Fase 5 — Calidad y seguridad:** endurecimiento RLS (un usuario no puede
+      cambiar su rol ni su departamento; un enlace no puede auto-validar su
+      reporte), guarda contra inyección de fórmulas en el CSV, cabeceras de
+      seguridad HTTP, páginas 404/error en español, aviso de enlace inválido en
+      el login y repaso responsive (usable desde 375 px). Pruebas negativas de
+      RLS incluidas.
 
 ## Documentación
 

@@ -48,8 +48,14 @@ export function ordenarRegiones(regiones: string[]): string[] {
 }
 
 // Construye el CSV consolidado (separador ';', con BOM) desde filas ya armadas.
+// Neutraliza inyección de fórmulas: valores que abren con = + - @ (o control)
+// se prefijan con comilla simple para que Excel/Sheets no los ejecute.
 export function construirCSV(encabezados: string[], filas: (string | number | null)[][]): string {
-  const q = (v: string | number | null) => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const q = (v: string | number | null) => {
+    let s = String(v ?? "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
   const lineas = [encabezados.map(q).join(";"), ...filas.map((f) => f.map(q).join(";"))];
   return "﻿" + lineas.join("\n");
 }

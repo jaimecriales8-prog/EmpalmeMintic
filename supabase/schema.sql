@@ -190,8 +190,15 @@ create policy dep_select on departamentos for select to authenticated using (tru
 -- Perfiles: cada quien ve el suyo; central/admin ven todos; admin administra
 create policy perfil_propio on perfiles for select to authenticated
   using (id = auth.uid() or mi_rol() in ('central','admin'));
+-- El usuario edita sus datos de contacto, pero NO su rol ni su departamento
+-- (evita escalada de privilegios vía self-update).
 create policy perfil_update_propio on perfiles for update to authenticated
-  using (id = auth.uid()) with check (id = auth.uid() and rol = (select rol from perfiles p where p.id = auth.uid()));
+  using (id = auth.uid())
+  with check (
+    id = auth.uid()
+    and rol = (select p.rol from perfiles p where p.id = auth.uid())
+    and departamento_codigo is not distinct from
+        (select p.departamento_codigo from perfiles p where p.id = auth.uid()));
 create policy perfil_admin on perfiles for all to authenticated
   using (mi_rol() = 'admin') with check (mi_rol() = 'admin');
 
@@ -203,12 +210,15 @@ create policy rep_insert on reportes for insert to authenticated
   with check (
     (mi_rol() = 'enlace' and departamento_codigo = mi_departamento())
     or mi_rol() = 'admin');
+-- El enlace solo puede dejar su reporte en 'borrador' o 'enviado' (no auto-validar).
+-- La validación (enviado -> validado) es exclusiva de central/admin.
 create policy rep_update on reportes for update to authenticated
   using (
     (mi_rol() = 'enlace' and departamento_codigo = mi_departamento() and estado = 'borrador')
     or mi_rol() in ('central','admin'))
   with check (
-    (mi_rol() = 'enlace' and departamento_codigo = mi_departamento())
+    (mi_rol() = 'enlace' and departamento_codigo = mi_departamento()
+       and estado in ('borrador','enviado'))
     or mi_rol() in ('central','admin'));
 create policy rep_delete on reportes for delete to authenticated
   using (mi_rol() = 'admin');
