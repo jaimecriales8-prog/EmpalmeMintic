@@ -58,7 +58,6 @@ lo consolida por regiones (Caribe, Andina, Pacífica, Orinoquía, Amazonía, Ins
 | `/consolidado` | central, admin | Dashboard regional |
 | `/reportes/[codigo]` | central, admin | Detalle de un reporte |
 | `/admin` | admin | Gestión de perfiles |
-| `/importar` | central, admin | Importar JSON del instrumento anterior |
 
 La autorización se aplica en dos capas: el `proxy.ts` exige sesión y las páginas
 de servidor exigen rol vía `requirePerfil()`; la seguridad real de datos la
@@ -78,7 +77,9 @@ garantiza el **RLS** de Supabase, no la UI.
       riesgos por severidad (vista `v_severidad_riesgos`), agenda de temas,
       exportación CSV (`;` + BOM) e impresión. Detalle de reporte con acciones
       de validar y devolver a borrador (central/admin).
-- [ ] **Fase 4 — Administración e importación** (`/admin`, `/importar`)
+- [ ] **Fase 4 — Administración** (`/admin`): crear usuarios por correo y
+      asignar rol y departamento. (El importador de JSON legado se descartó:
+      nunca se generaron archivos con el instrumento HTML anterior.)
 - [ ] **Fase 5 — Calidad y despliegue**
 
 ## Documentación
