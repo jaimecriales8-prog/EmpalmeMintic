@@ -73,7 +73,11 @@ garantiza el **RLS** de Supabase, no la UI.
       sticky, 8 secciones, tablas dinámicas (proyectos, riesgos, temas,
       sistemas), autosave con debounce, validación y envío que bloquea el
       reporte en solo lectura.
-- [ ] **Fase 3 — Consolidado** (`/consolidado`, `/reportes/[codigo]`)
+- [x] **Fase 3 — Consolidado** (`/consolidado`, `/reportes/[codigo]`): KPIs,
+      mapa de calor por región, tabla regional (vista `v_consolidado_regional`),
+      riesgos por severidad (vista `v_severidad_riesgos`), agenda de temas,
+      exportación CSV (`;` + BOM) e impresión. Detalle de reporte con acciones
+      de validar y devolver a borrador (central/admin).
 - [ ] **Fase 4 — Administración e importación** (`/admin`, `/importar`)
 - [ ] **Fase 5 — Calidad y despliegue**
 
