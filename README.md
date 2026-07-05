@@ -69,7 +69,10 @@ garantiza el **RLS** de Supabase, no la UI.
 - [x] **Fase 1 — Fundaciones:** proyecto Next.js, clientes Supabase
       (browser/server/admin), tipos derivados del schema, auth por magic link,
       protección de rutas por rol y pantalla "cuenta pendiente de activación".
-- [ ] **Fase 2 — Formulario del enlace** (`/formulario`)
+- [x] **Fase 2 — Formulario del enlace** (`/formulario`): tablero de semáforos
+      sticky, 8 secciones, tablas dinámicas (proyectos, riesgos, temas,
+      sistemas), autosave con debounce, validación y envío que bloquea el
+      reporte en solo lectura.
 - [ ] **Fase 3 — Consolidado** (`/consolidado`, `/reportes/[codigo]`)
 - [ ] **Fase 4 — Administración e importación** (`/admin`, `/importar`)
 - [ ] **Fase 5 — Calidad y despliegue**
