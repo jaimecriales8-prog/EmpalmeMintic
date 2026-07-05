@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta institucional (referencia/instrumento_departamental_TIC.html) */
+  --color-ink: #14212b;
+  --color-paper: #f2f4f7;
+  --color-card: #ffffff;
+  --color-line: #d7dee6;
+  --color-navy: #16324f;
+  --color-steel: #3e5c76;
+  --color-link: #1d6fb8;
+  --color-rojo: #b3261e;
+  --color-ambar: #b77400;
+  --color-verde: #1e7a46;
+  --color-rojo-bg: #fbeae9;
+  --color-ambar-bg: #fbf1de;
+  --color-verde-bg: #e6f3eb;
+
+  --font-sans: var(--font-plex-sans), "IBM Plex Sans", sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", monospace;
+  --font-display: var(--font-archivo), "Archivo", sans-serif;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* Etiqueta de campo estilo instrumento: mono, mayúsculas, steel */
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-steel);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9fc2de;
+}

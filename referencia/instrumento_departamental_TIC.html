@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empalme Territorial TIC · Instrumento Departamental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14212B; --paper:#F2F4F7; --card:#FFFFFF; --line:#D7DEE6;
+  --navy:#16324F; --steel:#3E5C76; --link:#1D6FB8;
+  --rojo:#B3261E; --ambar:#B77400; --verde:#1E7A46;
+  --rojo-bg:#FBEAE9; --ambar-bg:#FBF1DE; --verde-bg:#E6F3EB;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif; --disp:'Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.55}
+a{color:var(--link)}
+
+/* ---------- Cabecera ---------- */
+header.masthead{background:var(--navy);color:#fff;padding:28px 24px 22px}
+.mast-inner{max-width:1160px;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#9FC2DE;margin-bottom:8px}
+h1{font-family:var(--disp);font-variation-settings:'wdth' 112;font-weight:750;font-size:clamp(22px,3.2vw,34px);line-height:1.12}
+.mast-sub{margin-top:8px;color:#C6D5E2;font-size:13.5px;max-width:760px}
+
+/* ---------- Tablero de semáforos (firma) ---------- */
+#tablero{position:sticky;top:0;z-index:50;background:#fff;border-bottom:2px solid var(--navy);box-shadow:0 2px 8px rgba(20,33,43,.08)}
+.tab-inner{max-width:1160px;margin:0 auto;display:flex;align-items:stretch;gap:0;overflow-x:auto}
+.tab-cell{flex:1;min-width:120px;padding:10px 12px 9px;border-right:1px solid var(--line);cursor:pointer;transition:background .15s}
+.tab-cell:hover{background:#F6F9FC}
+.tab-cell .t-num{font-family:var(--mono);font-size:10px;color:var(--steel);letter-spacing:.08em}
+.tab-cell .t-name{font-size:12px;font-weight:600;margin:2px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-light{display:flex;gap:5px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%;background:#E2E8EE;border:1px solid #C4CEDA;transition:all .2s}
+.dot.on-rojo{background:var(--rojo);border-color:var(--rojo);box-shadow:0 0 0 3px var(--rojo-bg)}
+.dot.on-ambar{background:var(--ambar);border-color:var(--ambar);box-shadow:0 0 0 3px var(--ambar-bg)}
+.dot.on-verde{background:var(--verde);border-color:var(--verde);box-shadow:0 0 0 3px var(--verde-bg)}
+.t-estado{font-family:var(--mono);font-size:10px;color:var(--steel)}
+.tab-dept{min-width:190px;flex:1.3;background:#F6F9FC;padding:10px 14px;border-right:1px solid var(--line)}
+.tab-dept .t-dep{font-family:var(--disp);font-weight:700;font-size:15px;line-height:1.2}
+.tab-dept .t-reg{font-family:var(--mono);font-size:10.5px;color:var(--steel);letter-spacing:.06em;text-transform:uppercase}
+#pctFill{font-family:var(--mono);font-size:10.5px;color:var(--steel);margin-top:3px}
+
+/* ---------- Layout ---------- */
+main{max-width:1160px;margin:26px auto 80px;padding:0 24px;display:grid;grid-template-columns:1fr;gap:22px}
+section.bloque{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.bloque-head{display:flex;align-items:baseline;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line);background:linear-gradient(#fff,#FAFBFC)}
+.bloque-head .num{font-family:var(--mono);font-size:12px;color:var(--steel);border:1px solid var(--line);border-radius:4px;padding:2px 7px}
+.bloque-head h2{font-family:var(--disp);font-variation-settings:'wdth' 106;font-weight:700;font-size:18px}
+.bloque-head .hint{margin-left:auto;font-size:12px;color:var(--steel)}
+.bloque-body{padding:20px 22px 24px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}.tab-dept{min-width:140px}}
+.campo{display:flex;flex-direction:column;gap:5px}
+.campo.full{grid-column:1/-1}
+label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--steel)}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],select,textarea{
+  font-family:var(--sans);font-size:14.5px;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);width:100%}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--link);outline-offset:1px;border-color:var(--link)}
+.ayuda{font-size:12px;color:var(--steel)}
+
+/* Semáforo selector */
+.semaforo{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.sem-opt{flex:1;min-width:130px}
+.sem-opt input{position:absolute;opacity:0}
+.sem-opt span{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--line);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;transition:all .15s}
+.sem-opt span::before{content:'';width:12px;height:12px;border-radius:50%;background:#E2E8EE;flex:none}
+.sem-opt input:focus-visible+span{outline:2px solid var(--link);outline-offset:2px}
+.sem-opt.rojo input:checked+span{border-color:var(--rojo);background:var(--rojo-bg);color:var(--rojo)}
+.sem-opt.rojo input:checked+span::before{background:var(--rojo)}
+.sem-opt.ambar input:checked+span{border-color:var(--ambar);background:var(--ambar-bg);color:var(--ambar)}
+.sem-opt.ambar input:checked+span::before{background:var(--ambar)}
+.sem-opt.verde input:checked+span{border-color:var(--verde);background:var(--verde-bg);color:var(--verde)}
+.sem-opt.verde input:checked+span::before{background:var(--verde)}
+.sem-label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--steel);margin-top:16px;display:block}
+
+/* Tablas dinámicas */
+table.dyn{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+table.dyn th{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--steel);text-align:left;padding:7px 8px;border-bottom:2px solid var(--line)}
+table.dyn td{padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.dyn input,table.dyn select,table.dyn textarea{font-size:13px;padding:6px 8px}
+table.dyn textarea{min-height:38px}
+.btn-row{margin-top:10px}
+button{font-family:var(--sans);font-size:13.5px;font-weight:600;border:none;border-radius:7px;padding:9px 16px;cursor:pointer;transition:filter .15s}
+button:hover{filter:brightness(1.08)}
+.btn-sec{background:#E8EDF3;color:var(--navy)}
+.btn-del{background:none;color:var(--rojo);font-size:16px;padding:4px 8px;line-height:1}
+.chks{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:4px}
+.chks label{display:flex;align-items:center;gap:7px;font-family:var(--sans);font-size:13.5px;text-transform:none;letter-spacing:0;color:var(--ink);cursor:pointer}
+.chks input{width:15px;height:15px;accent-color:var(--navy)}
+
+/* ---------- Barra de acciones ---------- */
+#acciones{position:fixed;bottom:0;left:0;right:0;background:var(--navy);padding:12px 24px;z-index:60}
+.acc-inner{max-width:1160px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn-pri{background:#fff;color:var(--navy)}
+.btn-ghost{background:transparent;color:#C6D5E2;border:1px solid #3E5C76}
+#msg{font-family:var(--mono);font-size:12px;color:#9FC2DE;margin-left:auto}
+@media print{#tablero,#acciones,header.masthead .mast-sub{display:none}body{background:#fff}section.bloque{break-inside:avoid;border:1px solid #999;margin-bottom:10px}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="mast-inner">
+    <div class="eyebrow">Empalme presidencial 2026 · Sector TIC · Nivel territorial</div>
+    <h1>Instrumento de Estado Departamental TIC</h1>
+    <p class="mast-sub">Formato de captura para enlaces departamentales. Diligencie cada sección, califique el semáforo de estado y al finalizar use <strong>«Exportar reporte»</strong> para descargar el archivo que enviará al equipo central. Puede guardar su avance en cualquier momento y retomarlo después con «Cargar avance».</p>
+  </div>
+</header>
+
+<!-- Tablero de semáforos en vivo -->
+<div id="tablero" aria-label="Tablero de estado por dimensión">
+  <div class="tab-inner">
+    <div class="tab-dept">
+      <div class="t-dep" id="tabDepto">— Departamento —</div>
+      <div class="t-reg" id="tabRegion">Región sin asignar</div>
+      <div id="pctFill">0% diligenciado</div>
+    </div>
+    <div class="tab-cell" data-goto="s2"><div class="t-num">02</div><div class="t-name">Conectividad</div><div class="t-light"><span class="dot" id="d-conectividad"></span><span class="t-estado" id="e-conectividad">sin calificar</span></div></div>
+    <div class="tab-cell" data-goto="s3"><div class="t-num">03</div><div class="t-name">Barreras territoriales</div><div class="t-light"><span class="dot" id="d-barreras"></span><span class="t-estado" id="e-barreras">sin calificar</span></div></div>
+    <div class="tab-cell" data-goto="s4"><div class="t-num">04</div><div class="t-name">Proyectos e inversión</div><div class="t-light"><span class="dot" id="d-proyectos"></span><span class="t-estado" id="e-proyectos">sin calificar</span></div></div>
+    <div class="tab-cell" data-goto="s5"><div class="t-num">05</div><div class="t-name">Apropiación digital</div><div class="t-light"><span class="dot" id="d-apropiacion"></span><span class="t-estado" id="e-apropiacion">sin calificar</span></div></div>
+    <div class="tab-cell" data-goto="s6"><div class="t-num">06</div><div class="t-name">Capacidad institucional</div><div class="t-light"><span class="dot" id="d-capacidad"></span><span class="t-estado" id="e-capacidad">sin calificar</span></div></div>
+  </div>
+</div>
+
+<main>
+
+<!-- 01 IDENTIFICACIÓN -->
+<section class="bloque" id="s1">
+  <div class="bloque-head"><span class="num">01</span><h2>Identificación del reporte</h2><span class="hint">Todos los campos son obligatorios</span></div>
+  <div class="bloque-body grid3">
+    <div class="campo"><label for="departamento">Departamento</label>
+      <select id="departamento" data-k="identificacion.departamento"></select></div>
+    <div class="campo"><label>Región</label><input type="text" id="region" readonly data-k="identificacion.region" placeholder="Se asigna automáticamente"></div>
+    <div class="campo"><label for="fechaCorte">Fecha de corte de la información</label><input type="date" id="fechaCorte" data-k="identificacion.fechaCorte"></div>
+    <div class="campo"><label for="enlace">Nombre del enlace</label><input type="text" id="enlace" data-k="identificacion.enlace"></div>
+    <div class="campo"><label for="cargo">Cargo</label><input type="text" id="cargo" data-k="identificacion.cargo"></div>
+    <div class="campo"><label for="entidad">Entidad</label><input type="text" id="entidad" data-k="identificacion.entidad" placeholder="Gobernación, secretaría, etc."></div>
+    <div class="campo"><label for="correo">Correo institucional</label><input type="email" id="correo" data-k="identificacion.correo"></div>
+    <div class="campo"><label for="telefono">Teléfono de contacto</label><input type="tel" id="telefono" data-k="identificacion.telefono"></div>
+  </div>
+</section>
+
+<!-- 02 CONECTIVIDAD -->
+<section class="bloque" id="s2">
+  <div class="bloque-head"><span class="num">02</span><h2>Conectividad e infraestructura</h2><span class="hint">Use cifras oficiales (MinTIC, DANE, CRC) e indique la fuente</span></div>
+  <div class="bloque-body">
+    <div class="grid3">
+      <div class="campo"><label for="cob4g">Cobertura 4G (% municipios con servicio)</label><input type="number" min="0" max="100" id="cob4g" data-k="conectividad.cobertura4g"></div>
+      <div class="campo"><label for="cob5g">Cobertura 5G (% municipios con servicio)</label><input type="number" min="0" max="100" id="cob5g" data-k="conectividad.cobertura5g"></div>
+      <div class="campo"><label for="hogares">Hogares con internet (%)</label><input type="number" min="0" max="100" id="hogares" data-k="conectividad.hogaresInternet"></div>
+      <div class="campo"><label for="totalMun">Total municipios del departamento</label><input type="number" min="0" id="totalMun" data-k="conectividad.totalMunicipios"></div>
+      <div class="campo"><label for="munSin">Municipios sin cobertura o con cobertura parcial</label><input type="number" min="0" id="munSin" data-k="conectividad.municipiosSinCobertura"></div>
+      <div class="campo"><label for="fuenteCifras">Fuente de las cifras</label><input type="text" id="fuenteCifras" data-k="conectividad.fuente" placeholder="Ej.: MinTIC Boletín Q1-2026"></div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="campo"><label for="zonasCriticas">Zonas críticas sin servicio (veredas, corregimientos, franjas)</label><textarea id="zonasCriticas" data-k="conectividad.zonasCriticas"></textarea></div>
+      <div class="campo"><label for="infraCritica">Estado de infraestructura crítica (fibra, torres, puntos digitales, datacenters)</label><textarea id="infraCritica" data-k="conectividad.infraestructura"></textarea></div>
+    </div>
+    <span class="sem-label">Semáforo de estado — Conectividad</span>
+    <div class="semaforo" data-sem="conectividad">
+      <label class="sem-opt rojo"><input type="radio" name="sem-conectividad" value="critico"><span>Crítico</span></label>
+      <label class="sem-opt ambar"><input type="radio" name="sem-conectividad" value="riesgo"><span>En riesgo</span></label>
+      <label class="sem-opt verde"><input type="radio" name="sem-conectividad" value="estable"><span>Estable</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- 03 BARRERAS -->
+<section class="bloque" id="s3">
+  <div class="bloque-head"><span class="num">03</span><h2>Cargas y barreras territoriales al despliegue</h2></div>
+  <div class="bloque-body">
+    <div class="campo full"><label>Tributos territoriales aplicados a infraestructura TIC en el departamento</label>
+      <div class="chks" id="chkTributos">
+        <label><input type="checkbox" value="Impuesto de alumbrado público sobre redes">Alumbrado público sobre redes</label>
+        <label><input type="checkbox" value="Impuesto de teléfonos / telégrafos">Teléfonos / telégrafos</label>
+        <label><input type="checkbox" value="Estampillas u otras contribuciones">Estampillas u otras contribuciones</label>
+        <label><input type="checkbox" value="Tasas por uso de espacio público">Tasas por uso de espacio público</label>
+        <label><input type="checkbox" value="Otros">Otros</label>
+      </div></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="campo"><label for="detalleTributos">Detalle de tributos (municipios que los aplican, tarifas, conflictos)</label><textarea id="detalleTributos" data-k="barreras.detalleTributos"></textarea></div>
+      <div class="campo"><label for="barrerasDesp">Barreras de despliegue (POT, permisos, trámites, oposición social)</label><textarea id="barrerasDesp" data-k="barreras.barrerasDespliegue"></textarea></div>
+    </div>
+    <span class="sem-label">Semáforo de estado — Barreras territoriales</span>
+    <div class="semaforo" data-sem="barreras">
+      <label class="sem-opt rojo"><input type="radio" name="sem-barreras" value="critico"><span>Crítico</span></label>
+      <label class="sem-opt ambar"><input type="radio" name="sem-barreras" value="riesgo"><span>En riesgo</span></label>
+      <label class="sem-opt verde"><input type="radio" name="sem-barreras" value="estable"><span>Estable</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- 04 PROYECTOS -->
+<section class="bloque" id="s4">
+  <div class="bloque-head"><span class="num">04</span><h2>Proyectos e inversión TIC en ejecución</h2><span class="hint">FUTIC, obligaciones de hacer, APP, convenios, proyectos propios</span></div>
+  <div class="bloque-body">
+    <table class="dyn" id="tblProyectos">
+      <thead><tr><th style="width:24%">Proyecto</th><th style="width:14%">Fuente / financiador</th><th style="width:13%">Estado</th><th style="width:9%">Avance %</th><th style="width:34%">Riesgos u observaciones</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="btn-row"><button type="button" class="btn-sec" onclick="addProyecto()">+ Agregar proyecto</button></div>
+    <span class="sem-label">Semáforo de estado — Proyectos e inversión</span>
+    <div class="semaforo" data-sem="proyectos">
+      <label class="sem-opt rojo"><input type="radio" name="sem-proyectos" value="critico"><span>Crítico</span></label>
+      <label class="sem-opt ambar"><input type="radio" name="sem-proyectos" value="riesgo"><span>En riesgo</span></label>
+      <label class="sem-opt verde"><input type="radio" name="sem-proyectos" value="estable"><span>Estable</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- 05 APROPIACIÓN -->
+<section class="bloque" id="s5">
+  <div class="bloque-head"><span class="num">05</span><h2>Apropiación y transformación digital</h2><span class="hint">Cifras de la vigencia actual · indique la fuente</span></div>
+  <div class="bloque-body">
+    <div class="grid3">
+      <div class="campo"><label for="progTalento">Programas de talento digital activos (número)</label><input type="number" min="0" id="progTalento" data-k="apropiacion.programasTalento"></div>
+      <div class="campo"><label for="persFormadas">Personas formadas en habilidades digitales (número, vigencia)</label><input type="number" min="0" id="persFormadas" data-k="apropiacion.personasFormadas"></div>
+      <div class="campo"><label for="munTramites">Municipios con al menos un trámite en línea (número)</label><input type="number" min="0" id="munTramites" data-k="apropiacion.municipiosTramitesLinea"></div>
+      <div class="campo"><label for="tramitesGob">Trámites de la gobernación disponibles en línea (número)</label><input type="number" min="0" id="tramitesGob" data-k="apropiacion.tramitesGobernacion"></div>
+      <div class="campo"><label for="mipymesBenef">Mipymes beneficiadas por programas TIC (número, vigencia)</label><input type="number" min="0" id="mipymesBenef" data-k="apropiacion.mipymesBeneficiadas"></div>
+      <div class="campo"><label for="incidentes">Incidentes de ciberseguridad reportados (número, vigencia)</label><input type="number" min="0" id="incidentes" data-k="apropiacion.incidentesCiber"></div>
+      <div class="campo"><label for="planTD">¿Plan o estrategia de transformación digital vigente?</label>
+        <select id="planTD" data-k="apropiacion.planTransformacion">
+          <option value="">Seleccione…</option><option>Sí, adoptado y en ejecución</option><option>Sí, adoptado pero sin ejecución</option><option>En formulación</option><option>No existe</option>
+        </select></div>
+      <div class="campo"><label for="capCiber">¿Capacidad de respuesta a incidentes (protocolo, CSIRT, convenio)?</label>
+        <select id="capCiber" data-k="apropiacion.capacidadCiber">
+          <option value="">Seleccione…</option><option>Sí, formalizada</option><option>Parcial / en construcción</option><option>No existe</option>
+        </select></div>
+      <div class="campo"><label for="fuenteApro">Fuente de las cifras</label><input type="text" id="fuenteApro" data-k="apropiacion.fuente" placeholder="Ej.: Secretaría TIC, MinTIC, SIGEP"></div>
+    </div>
+    <div class="campo full" style="margin-top:14px"><label for="obsApro">Observaciones (opcional, máx. 300 caracteres)</label><textarea id="obsApro" maxlength="300" style="min-height:56px" data-k="apropiacion.observaciones"></textarea></div>
+    <span class="sem-label">Semáforo de estado — Apropiación digital</span>
+    <div class="semaforo" data-sem="apropiacion">
+      <label class="sem-opt rojo"><input type="radio" name="sem-apropiacion" value="critico"><span>Crítico</span></label>
+      <label class="sem-opt ambar"><input type="radio" name="sem-apropiacion" value="riesgo"><span>En riesgo</span></label>
+      <label class="sem-opt verde"><input type="radio" name="sem-apropiacion" value="estable"><span>Estable</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- 06 CAPACIDAD INSTITUCIONAL -->
+<section class="bloque" id="s6">
+  <div class="bloque-head"><span class="num">06</span><h2>Capacidad institucional TIC del departamento</h2><span class="hint">Cifras de la vigencia actual · indique la fuente</span></div>
+  <div class="bloque-body">
+    <div class="grid3">
+      <div class="campo"><label for="depTic">Dependencia TIC en la gobernación</label>
+        <select id="depTic" data-k="capacidad.dependencia">
+          <option value="">Seleccione…</option>
+          <option>Secretaría TIC propia</option>
+          <option>Oficina / dirección adscrita a otra secretaría</option>
+          <option>Enlace o funcionario designado</option>
+          <option>No existe dependencia formal</option>
+        </select></div>
+      <div class="campo"><label for="presupuesto">Presupuesto TIC vigencia actual (COP millones)</label><input type="number" min="0" id="presupuesto" data-k="capacidad.presupuesto"></div>
+      <div class="campo"><label for="personal">Personal dedicado a TIC (número)</label><input type="number" min="0" id="personal" data-k="capacidad.personal"></div>
+      <div class="campo"><label for="contratosTic">Contratos TIC vigentes que trascienden el periodo de gobierno (número)</label><input type="number" min="0" id="contratosTic" data-k="capacidad.contratosVigentes"></div>
+      <div class="campo"><label for="inventario">¿Inventario de activos TIC actualizado?</label>
+        <select id="inventario" data-k="capacidad.inventarioActivos">
+          <option value="">Seleccione…</option><option>Sí, actualizado</option><option>Existe pero desactualizado</option><option>No existe</option>
+        </select></div>
+      <div class="campo"><label for="mspi">¿Política de seguridad de la información (MSPI) adoptada?</label>
+        <select id="mspi" data-k="capacidad.politicaSeguridad">
+          <option value="">Seleccione…</option><option>Adoptada y en ejecución</option><option>Adoptada sin ejecución</option><option>No existe</option>
+        </select></div>
+      <div class="campo"><label for="fuenteCap">Fuente de las cifras</label><input type="text" id="fuenteCap" data-k="capacidad.fuente" placeholder="Ej.: Secretaría TIC, oficina de planeación"></div>
+    </div>
+    <span class="sem-label" style="margin-top:20px">Sistemas de información y activos digitales de la gobernación</span>
+    <table class="dyn" id="tblSistemas">
+      <thead><tr><th style="width:26%">Sistema o activo</th><th style="width:17%">Tipo</th><th style="width:15%">Estado</th><th style="width:16%">Licenciamiento</th><th style="width:20%">Observación</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="btn-row"><button type="button" class="btn-sec" onclick="addSistema()">+ Agregar sistema o activo</button></div>
+    <div class="campo full" style="margin-top:14px"><label for="obsCap">Observaciones (opcional, máx. 300 caracteres)</label><textarea id="obsCap" maxlength="300" style="min-height:56px" data-k="capacidad.observaciones"></textarea></div>
+    <span class="sem-label">Semáforo de estado — Capacidad institucional</span>
+    <div class="semaforo" data-sem="capacidad">
+      <label class="sem-opt rojo"><input type="radio" name="sem-capacidad" value="critico"><span>Crítico</span></label>
+      <label class="sem-opt ambar"><input type="radio" name="sem-capacidad" value="riesgo"><span>En riesgo</span></label>
+      <label class="sem-opt verde"><input type="radio" name="sem-capacidad" value="estable"><span>Estable</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- 07 RIESGOS -->
+<section class="bloque" id="s7">
+  <div class="bloque-head"><span class="num">07</span><h2>Matriz de riesgos del territorio</h2><span class="hint">Riesgos que el nuevo gobierno debe conocer desde el día uno</span></div>
+  <div class="bloque-body">
+    <table class="dyn" id="tblRiesgos">
+      <thead><tr><th style="width:30%">Descripción del riesgo</th><th style="width:16%">Dimensión</th><th style="width:12%">Probabilidad</th><th style="width:12%">Impacto</th><th style="width:24%">Acción de mitigación sugerida</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="btn-row"><button type="button" class="btn-sec" onclick="addRiesgo()">+ Agregar riesgo</button></div>
+  </div>
+</section>
+
+<!-- 08 TEMAS CRÍTICOS -->
+<section class="bloque" id="s8">
+  <div class="bloque-head"><span class="num">08</span><h2>Temas críticos de activación inmediata</h2><span class="hint">Agenda de los primeros 100 días en el territorio</span></div>
+  <div class="bloque-body">
+    <table class="dyn" id="tblTemas">
+      <thead><tr><th style="width:38%">Tema</th><th style="width:16%">Plazo sugerido</th><th style="width:36%">Responsable sugerido / entidad</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="btn-row"><button type="button" class="btn-sec" onclick="addTema()">+ Agregar tema</button></div>
+    <div class="campo full" style="margin-top:18px"><label for="observaciones">Observaciones generales del enlace</label><textarea id="observaciones" data-k="observaciones"></textarea></div>
+  </div>
+</section>
+
+</main>
+
+<div id="acciones">
+  <div class="acc-inner">
+    <button class="btn-pri" onclick="exportar()">Exportar reporte (JSON)</button>
+    <button class="btn-ghost" onclick="exportar(true)">Guardar avance</button>
+    <button class="btn-ghost" onclick="document.getElementById('fileLoad').click()">Cargar avance</button>
+    <input type="file" id="fileLoad" accept=".json" style="display:none" onchange="cargar(this)">
+    <button class="btn-ghost" onclick="window.print()">Imprimir</button>
+    <span id="msg"></span>
+  </div>
+</div>
+
+<script>
+/* ---------- Datos maestros ---------- */
+const REGIONES = {
+ "Amazonas":"Amazonía","Antioquia":"Andina","Arauca":"Orinoquía","Atlántico":"Caribe",
+ "Bogotá D.C.":"Andina","Bolívar":"Caribe","Boyacá":"Andina","Caldas":"Andina",
+ "Caquetá":"Amazonía","Casanare":"Orinoquía","Cauca":"Pacífica","Cesar":"Caribe",
+ "Chocó":"Pacífica","Córdoba":"Caribe","Cundinamarca":"Andina","Guainía":"Amazonía",
+ "Guaviare":"Amazonía","Huila":"Andina","La Guajira":"Caribe","Magdalena":"Caribe",
+ "Meta":"Orinoquía","Nariño":"Pacífica","Norte de Santander":"Andina","Putumayo":"Amazonía",
+ "Quindío":"Andina","Risaralda":"Andina","San Andrés y Providencia":"Insular",
+ "Santander":"Andina","Sucre":"Caribe","Tolima":"Andina","Valle del Cauca":"Pacífica",
+ "Vaupés":"Amazonía","Vichada":"Orinoquía"
+};
+const DIMENSIONES = ["conectividad","barreras","proyectos","apropiacion","capacidad"];
+const ETIQ = {critico:"Crítico",riesgo:"En riesgo",estable:"Estable"};
+const CLASE = {critico:"on-rojo",riesgo:"on-ambar",estable:"on-verde"};
+
+/* ---------- Inicialización ---------- */
+const selDep = document.getElementById('departamento');
+selDep.innerHTML = '<option value="">Seleccione…</option>' + Object.keys(REGIONES).map(d=>`<option>${d}</option>`).join('');
+selDep.addEventListener('change', ()=>{
+  const d = selDep.value;
+  document.getElementById('region').value = REGIONES[d]||'';
+  document.getElementById('tabDepto').textContent = d || '— Departamento —';
+  document.getElementById('tabRegion').textContent = d ? ('Región '+REGIONES[d]) : 'Región sin asignar';
+});
+document.querySelectorAll('.tab-cell').forEach(c=>c.addEventListener('click',()=>{
+  document.getElementById(c.dataset.goto).scrollIntoView({behavior:'smooth',block:'start'});
+}));
+
+/* Semáforos en vivo */
+DIMENSIONES.forEach(dim=>{
+  document.querySelectorAll(`input[name="sem-${dim}"]`).forEach(r=>r.addEventListener('change',()=>{
+    const dot=document.getElementById('d-'+dim), est=document.getElementById('e-'+dim);
+    dot.className='dot '+CLASE[r.value]; est.textContent=ETIQ[r.value].toLowerCase();
+    progreso();
+  }));
+});
+
+/* ---------- Tablas dinámicas ---------- */
+function fila(tbody, celdas){
+  const tr=document.createElement('tr');
+  tr.innerHTML = celdas + '<td><button type="button" class="btn-del" title="Eliminar fila" onclick="this.closest(\'tr\').remove();progreso()">×</button></td>';
+  tbody.appendChild(tr); progreso();
+}
+function addProyecto(d={}){
+  fila(document.querySelector('#tblProyectos tbody'), `
+   <td><input type="text" class="p-nombre" value="${d.nombre||''}"></td>
+   <td><input type="text" class="p-fuente" value="${d.fuente||''}" placeholder="FUTIC, OdH, APP…"></td>
+   <td><select class="p-estado">${['','En ejecución','Suspendido','En estructuración','Finalizado','En riesgo de pérdida'].map(o=>`<option ${o===d.estado?'selected':''}>${o}</option>`).join('')}</select></td>
+   <td><input type="number" class="p-avance" min="0" max="100" value="${d.avance??''}"></td>
+   <td><textarea class="p-obs">${d.riesgos||''}</textarea></td>`);
+}
+function addRiesgo(d={}){
+  const opt=(arr,v)=>arr.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('');
+  fila(document.querySelector('#tblRiesgos tbody'), `
+   <td><textarea class="r-desc">${d.descripcion||''}</textarea></td>
+   <td><select class="r-dim">${opt(['','Conectividad','Barreras territoriales','Proyectos e inversión','Apropiación digital','Capacidad institucional','Transversal'],d.dimension)}</select></td>
+   <td><select class="r-prob">${opt(['','Alta','Media','Baja'],d.probabilidad)}</select></td>
+   <td><select class="r-imp">${opt(['','Alto','Medio','Bajo'],d.impacto)}</select></td>
+   <td><textarea class="r-acc">${d.accion||''}</textarea></td>`);
+}
+function addTema(d={}){
+  fila(document.querySelector('#tblTemas tbody'), `
+   <td><textarea class="t-tema">${d.tema||''}</textarea></td>
+   <td><select class="t-plazo">${['','Inmediato (30 días)','Corto (100 días)','Primer año'].map(o=>`<option ${o===d.plazo?'selected':''}>${o}</option>`).join('')}</select></td>
+   <td><input type="text" class="t-resp" value="${d.responsable||''}"></td>`);
+}
+function addSistema(d={}){
+  const opt=(arr,v)=>arr.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('');
+  fila(document.querySelector('#tblSistemas tbody'), `
+   <td><input type="text" class="s-nombre" value="${d.nombre||''}" placeholder="Ej.: sistema financiero, página web"></td>
+   <td><select class="s-tipo">${opt(['','Sistema misional','Sistema de apoyo','Infraestructura / equipos','Portal o sede electrónica','Otro'],d.tipo)}</select></td>
+   <td><select class="s-estado">${opt(['','En operación','Operando con fallas','Obsoleto','Fuera de servicio'],d.estado)}</select></td>
+   <td><select class="s-lic">${opt(['','Vigente','Vencido','Software libre','Desarrollo propio','Sin información'],d.licenciamiento)}</select></td>
+   <td><input type="text" class="s-obs" value="${d.observacion||''}"></td>`);
+}
+addProyecto(); addRiesgo(); addTema(); addSistema();
+
+/* ---------- Progreso ---------- */
+function progreso(){
+  const campos=[...document.querySelectorAll('[data-k]')];
+  let llenos=campos.filter(c=>c.value && c.value.trim()!=='').length;
+  let total=campos.length + DIMENSIONES.length;
+  DIMENSIONES.forEach(d=>{ if(document.querySelector(`input[name="sem-${d}"]:checked`)) llenos++; });
+  document.getElementById('pctFill').textContent = Math.round(llenos/total*100)+'% diligenciado';
+}
+document.addEventListener('input', progreso); progreso();
+
+/* ---------- Serialización ---------- */
+function get(k){ const el=document.querySelector(`[data-k="${k}"]`); return el?el.value:''; }
+function recolectar(){
+  const data={version:1,tipo:"departamental",generado:new Date().toISOString()};
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const path=el.dataset.k.split('.'); let o=data;
+    for(let i=0;i<path.length-1;i++){o[path[i]]=o[path[i]]||{};o=o[path[i]];}
+    o[path[path.length-1]]=el.value;
+  });
+  data.semaforos={};
+  DIMENSIONES.forEach(d=>{const c=document.querySelector(`input[name="sem-${d}"]:checked`);data.semaforos[d]=c?c.value:null;});
+  data.barreras=data.barreras||{};
+  data.barreras.tributos=[...document.querySelectorAll('#chkTributos input:checked')].map(c=>c.value);
+  data.proyectos=[...document.querySelectorAll('#tblProyectos tbody tr')].map(tr=>({
+    nombre:tr.querySelector('.p-nombre').value,fuente:tr.querySelector('.p-fuente').value,
+    estado:tr.querySelector('.p-estado').value,avance:tr.querySelector('.p-avance').value,
+    riesgos:tr.querySelector('.p-obs').value})).filter(p=>p.nombre.trim());
+  data.riesgos=[...document.querySelectorAll('#tblRiesgos tbody tr')].map(tr=>({
+    descripcion:tr.querySelector('.r-desc').value,dimension:tr.querySelector('.r-dim').value,
+    probabilidad:tr.querySelector('.r-prob').value,impacto:tr.querySelector('.r-imp').value,
+    accion:tr.querySelector('.r-acc').value})).filter(r=>r.descripcion.trim());
+  data.temasCriticos=[...document.querySelectorAll('#tblTemas tbody tr')].map(tr=>({
+    tema:tr.querySelector('.t-tema').value,plazo:tr.querySelector('.t-plazo').value,
+    responsable:tr.querySelector('.t-resp').value})).filter(t=>t.tema.trim());
+  data.capacidad=data.capacidad||{};
+  data.capacidad.sistemas=[...document.querySelectorAll('#tblSistemas tbody tr')].map(tr=>({
+    nombre:tr.querySelector('.s-nombre').value,tipo:tr.querySelector('.s-tipo').value,
+    estado:tr.querySelector('.s-estado').value,licenciamiento:tr.querySelector('.s-lic').value,
+    observacion:tr.querySelector('.s-obs').value})).filter(s=>s.nombre.trim());
+  return data;
+}
+function exportar(avance=false){
+  const d=recolectar();
+  if(!avance){
+    if(!d.identificacion?.departamento){aviso('Seleccione el departamento antes de exportar.');return;}
+    const sinSem=DIMENSIONES.filter(x=>!d.semaforos[x]);
+    if(sinSem.length){aviso('Faltan semáforos: '+sinSem.join(', '));return;}
+  }
+  const dep=(d.identificacion?.departamento||'avance').replace(/[^\wÁÉÍÓÚÑáéíóúñ ]/g,'').replace(/\s+/g,'_');
+  const nombre=`empalme_TIC_${dep}${avance?'_avance':''}.json`;
+  const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre;a.click();
+  URL.revokeObjectURL(a.href);
+  aviso((avance?'Avance guardado: ':'Reporte exportado: ')+nombre);
+}
+function cargar(inp){
+  const f=inp.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{aplicar(JSON.parse(rd.result));aviso('Avance cargado correctamente.');}catch(e){aviso('El archivo no es un reporte válido.');}};
+  rd.readAsText(f); inp.value='';
+}
+function aplicar(d){
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const v=el.dataset.k.split('.').reduce((o,k)=>o&&o[k]!==undefined?o[k]:'',d);
+    el.value=v||'';
+  });
+  selDep.dispatchEvent(new Event('change'));
+  DIMENSIONES.forEach(dim=>{
+    const v=d.semaforos?.[dim];
+    if(v){const r=document.querySelector(`input[name="sem-${dim}"][value="${v}"]`);if(r){r.checked=true;r.dispatchEvent(new Event('change'));}}
+  });
+  document.querySelectorAll('#chkTributos input').forEach(c=>c.checked=(d.barreras?.tributos||[]).includes(c.value));
+  document.querySelector('#tblProyectos tbody').innerHTML='';(d.proyectos&&d.proyectos.length?d.proyectos:[{}]).forEach(addProyecto);
+  document.querySelector('#tblRiesgos tbody').innerHTML='';(d.riesgos&&d.riesgos.length?d.riesgos:[{}]).forEach(addRiesgo);
+  document.querySelector('#tblTemas tbody').innerHTML='';(d.temasCriticos&&d.temasCriticos.length?d.temasCriticos:[{}]).forEach(addTema);
+  document.querySelector('#tblSistemas tbody').innerHTML='';(d.capacidad?.sistemas&&d.capacidad.sistemas.length?d.capacidad.sistemas:[{}]).forEach(addSistema);
+  progreso();
+}
+let msgTimer;
+function aviso(t){const m=document.getElementById('msg');m.textContent=t;clearTimeout(msgTimer);msgTimer=setTimeout(()=>m.textContent='',6000);}
+</script>
+</body>
+</html>

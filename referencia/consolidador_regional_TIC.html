@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empalme Territorial TIC · Consolidador Regional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14212B; --paper:#F2F4F7; --card:#FFFFFF; --line:#D7DEE6;
+  --navy:#16324F; --steel:#3E5C76; --link:#1D6FB8;
+  --rojo:#B3261E; --ambar:#B77400; --verde:#1E7A46;
+  --rojo-bg:#FBEAE9; --ambar-bg:#FBF1DE; --verde-bg:#E6F3EB;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif; --disp:'Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:15px;line-height:1.55}
+
+header.masthead{background:var(--navy);color:#fff;padding:28px 24px 22px}
+.mast-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#9FC2DE;margin-bottom:8px}
+h1{font-family:var(--disp);font-variation-settings:'wdth' 112;font-weight:750;font-size:clamp(22px,3vw,32px);line-height:1.12}
+.mast-sub{margin-top:8px;color:#C6D5E2;font-size:13.5px;max-width:680px}
+.mast-actions{display:flex;gap:10px;flex-wrap:wrap}
+button{font-family:var(--sans);font-size:13.5px;font-weight:600;border:none;border-radius:7px;padding:10px 16px;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+.btn-pri{background:#fff;color:var(--navy)}
+.btn-ghost{background:transparent;color:#C6D5E2;border:1px solid #3E5C76}
+
+main{max-width:1240px;margin:24px auto 80px;padding:0 24px;display:grid;gap:22px}
+
+/* Zona de carga */
+#drop{border:2px dashed #A9B8C6;border-radius:12px;background:#fff;padding:44px 24px;text-align:center;cursor:pointer;transition:all .15s}
+#drop.hover{border-color:var(--link);background:#F0F7FD}
+#drop .big{font-family:var(--disp);font-weight:700;font-size:18px}
+#drop .small{font-size:13px;color:var(--steel);margin-top:6px}
+#drop .small code{font-family:var(--mono);font-size:12px;background:#EEF2F6;padding:1px 6px;border-radius:4px}
+
+/* Tarjetas resumen */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.kpi .v{font-family:var(--disp);font-variation-settings:'wdth' 110;font-weight:750;font-size:30px;line-height:1}
+.kpi .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);margin-top:7px}
+.kpi.alerta .v{color:var(--rojo)}
+
+section.bloque{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.bloque-head{display:flex;align-items:baseline;gap:12px;padding:15px 22px;border-bottom:1px solid var(--line);background:linear-gradient(#fff,#FAFBFC)}
+.bloque-head h2{font-family:var(--disp);font-variation-settings:'wdth' 106;font-weight:700;font-size:17px}
+.bloque-head .hint{margin-left:auto;font-size:12px;color:var(--steel)}
+.bloque-body{padding:18px 22px 22px;overflow-x:auto}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--steel);text-align:left;padding:8px;border-bottom:2px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.region-row td{background:#EDF1F5;font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.03em}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.p-critico{background:var(--rojo-bg);color:var(--rojo)}
+.p-riesgo{background:var(--ambar-bg);color:var(--ambar)}
+.p-estable{background:var(--verde-bg);color:var(--verde)}
+.p-na{background:#EEF1F4;color:#8595A4}
+.sev{font-family:var(--mono);font-size:11px;font-weight:500}
+.sev-alta{color:var(--rojo)} .sev-media{color:var(--ambar)} .sev-baja{color:var(--verde)}
+td.center,th.center{text-align:center}
+.vacio{padding:26px;text-align:center;color:var(--steel);font-size:13.5px}
+.bar-wrap{background:#EDF1F5;border-radius:4px;height:9px;min-width:80px;position:relative;overflow:hidden}
+.bar{height:100%;background:var(--link);border-radius:4px}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.bar-cell .num{font-family:var(--mono);font-size:11.5px;min-width:38px;text-align:right}
+#msg{font-family:var(--mono);font-size:12px;color:#9FC2DE}
+@media print{header.masthead .mast-actions,#drop{display:none}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="mast-inner">
+    <div>
+      <div class="eyebrow">Empalme presidencial 2026 · Sector TIC · Equipo central</div>
+      <h1>Consolidador Regional de Estado Territorial</h1>
+      <p class="mast-sub">Cargue los reportes JSON enviados por los enlaces departamentales. El tablero agrega automáticamente por regiones de Colombia: Caribe, Andina, Pacífica, Orinoquía, Amazonía e Insular.</p>
+    </div>
+    <div class="mast-actions">
+      <button class="btn-pri" onclick="document.getElementById('files').click()">Cargar reportes</button>
+      <button class="btn-ghost" onclick="exportarCSV()">Exportar CSV</button>
+      <button class="btn-ghost" onclick="window.print()">Imprimir</button>
+      <span id="msg"></span>
+    </div>
+  </div>
+</header>
+
+<input type="file" id="files" accept=".json" multiple style="display:none">
+
+<main>
+
+<div id="drop">
+  <div class="big">Arrastre aquí los reportes de los enlaces</div>
+  <div class="small">o haga clic para seleccionarlos · archivos <code>empalme_TIC_*.json</code> · puede cargar varios a la vez y agregar más después</div>
+</div>
+
+<div class="cards" id="kpis" style="display:none">
+  <div class="kpi"><div class="v" id="kReportes">0</div><div class="l">Reportes cargados</div></div>
+  <div class="kpi"><div class="v" id="kRegiones">0</div><div class="l">Regiones con información</div></div>
+  <div class="kpi alerta"><div class="v" id="kCriticos">0</div><div class="l">Semáforos en crítico</div></div>
+  <div class="kpi"><div class="v" id="kRiesgosAltos">0</div><div class="l">Riesgos de severidad alta</div></div>
+  <div class="kpi"><div class="v" id="kTemas">0</div><div class="l">Temas de activación inmediata</div></div>
+</div>
+
+<section class="bloque" id="secMapa" style="display:none">
+  <div class="bloque-head"><h2>Mapa de calor · Semáforos por departamento y dimensión</h2><span class="hint">Agrupado por región</span></div>
+  <div class="bloque-body"><table id="tblMapa">
+    <thead><tr><th>Departamento</th><th class="center">Conectividad</th><th class="center">Barreras</th><th class="center">Proyectos</th><th class="center">Apropiación</th><th class="center">Capacidad</th><th>Enlace</th><th>Corte</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+<section class="bloque" id="secRegional" style="display:none">
+  <div class="bloque-head"><h2>Indicadores agregados por región</h2><span class="hint">Promedios simples sobre los departamentos reportados</span></div>
+  <div class="bloque-body"><table id="tblRegional">
+    <thead><tr><th>Región</th><th class="center">Deptos. reportados</th><th>Cobertura 4G prom.</th><th>Cobertura 5G prom.</th><th>Hogares con internet prom.</th><th class="center">Mpios. sin cobertura</th><th class="center">Personas formadas</th><th class="center">Mpios. con trámites en línea</th><th class="center">Riesgos alta severidad</th><th class="center">Semáforos críticos</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+<section class="bloque" id="secRiesgos" style="display:none">
+  <div class="bloque-head"><h2>Riesgos consolidados</h2><span class="hint">Ordenados por severidad (probabilidad × impacto)</span></div>
+  <div class="bloque-body"><table id="tblRiesgos">
+    <thead><tr><th>Severidad</th><th>Región</th><th>Departamento</th><th>Dimensión</th><th>Riesgo</th><th>Acción sugerida</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+<section class="bloque" id="secTemas" style="display:none">
+  <div class="bloque-head"><h2>Agenda de temas críticos</h2><span class="hint">Insumo para la agenda de activación de los primeros 100 días</span></div>
+  <div class="bloque-body"><table id="tblTemas">
+    <thead><tr><th>Plazo</th><th>Región</th><th>Departamento</th><th>Tema</th><th>Responsable sugerido</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+</main>
+
+<script>
+const ORDEN_REGIONES=["Caribe","Andina","Pacífica","Orinoquía","Amazonía","Insular"];
+const DIMS=["conectividad","barreras","proyectos","apropiacion","capacidad"];
+const ETIQ={critico:"Crítico",riesgo:"En riesgo",estable:"Estable"};
+const PESO={Alta:3,Media:2,Baja:1,Alto:3,Medio:2,Bajo:1};
+let reportes={}; // clave: departamento
+
+/* ---------- Carga de archivos ---------- */
+const drop=document.getElementById('drop'), inp=document.getElementById('files');
+drop.addEventListener('click',()=>inp.click());
+['dragover','dragenter'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('hover');}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('hover');}));
+drop.addEventListener('drop',ev=>leer(ev.dataTransfer.files));
+inp.addEventListener('change',()=>{leer(inp.files);inp.value='';});
+
+function leer(files){
+  let pend=files.length, ok=0, mal=0;
+  [...files].forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=()=>{
+      try{
+        const d=JSON.parse(rd.result);
+        const dep=d.identificacion?.departamento;
+        if(d.tipo==='departamental' && dep){reportes[dep]=d;ok++;}
+        else mal++;
+      }catch(e){mal++;}
+      if(--pend===0){render();aviso(`${ok} reporte(s) cargado(s)`+(mal?`, ${mal} archivo(s) no válido(s)`:''));}
+    };
+    rd.readAsText(f);
+  });
+}
+
+/* ---------- Utilidades ---------- */
+const n=v=>{const x=parseFloat(v);return isNaN(x)?null:x;};
+const prom=a=>{const v=a.filter(x=>x!==null);return v.length?(v.reduce((s,x)=>s+x,0)/v.length):null;};
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pill(v){
+  if(!v)return '<span class="pill p-na">s/i</span>';
+  return `<span class="pill p-${v}">${ETIQ[v]}</span>`;
+}
+function severidad(r){
+  const s=(PESO[r.probabilidad]||0)*(PESO[r.impacto]||0);
+  if(s>=6)return{s,t:'Alta',c:'sev-alta'};
+  if(s>=3)return{s,t:'Media',c:'sev-media'};
+  return{s,t:s?'Baja':'—',c:'sev-baja'};
+}
+function barra(v){
+  if(v===null)return '<span class="pill p-na">s/i</span>';
+  return `<div class="bar-cell"><span class="num">${v.toFixed(1)}%</span><div class="bar-wrap"><div class="bar" style="width:${Math.min(v,100)}%"></div></div></div>`;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const lista=Object.values(reportes);
+  if(!lista.length)return;
+  drop.style.display='none';
+  ['kpis','secMapa','secRegional','secRiesgos','secTemas'].forEach(id=>document.getElementById(id).style.display='');
+
+  // Agrupar por región
+  const porRegion={};
+  lista.forEach(r=>{
+    const reg=r.identificacion?.region||'Sin región';
+    (porRegion[reg]=porRegion[reg]||[]).push(r);
+  });
+  const regiones=ORDEN_REGIONES.filter(r=>porRegion[r]).concat(Object.keys(porRegion).filter(r=>!ORDEN_REGIONES.includes(r)));
+
+  // KPIs
+  let criticos=0, riesgosAltos=0, temasInmediatos=0;
+  lista.forEach(r=>{
+    DIMS.forEach(d=>{if(r.semaforos?.[d]==='critico')criticos++;});
+    (r.riesgos||[]).forEach(x=>{if(severidad(x).t==='Alta')riesgosAltos++;});
+    (r.temasCriticos||[]).forEach(t=>{if((t.plazo||'').startsWith('Inmediato'))temasInmediatos++;});
+  });
+  kReportes.textContent=lista.length;
+  kRegiones.textContent=regiones.length;
+  kCriticos.textContent=criticos;
+  kRiesgosAltos.textContent=riesgosAltos;
+  kTemas.textContent=temasInmediatos;
+
+  // Mapa de calor
+  const tbMapa=document.querySelector('#tblMapa tbody');tbMapa.innerHTML='';
+  regiones.forEach(reg=>{
+    tbMapa.insertAdjacentHTML('beforeend',`<tr class="region-row"><td colspan="8">REGIÓN ${esc(reg.toUpperCase())} · ${porRegion[reg].length} departamento(s)</td></tr>`);
+    porRegion[reg].sort((a,b)=>a.identificacion.departamento.localeCompare(b.identificacion.departamento)).forEach(r=>{
+      tbMapa.insertAdjacentHTML('beforeend',`<tr>
+        <td><strong>${esc(r.identificacion.departamento)}</strong></td>
+        ${DIMS.map(d=>`<td class="center">${pill(r.semaforos?.[d])}</td>`).join('')}
+        <td>${esc(r.identificacion.enlace)}</td>
+        <td>${esc(r.identificacion.fechaCorte)}</td></tr>`);
+    });
+  });
+
+  // Regional
+  const tbReg=document.querySelector('#tblRegional tbody');tbReg.innerHTML='';
+  regiones.forEach(reg=>{
+    const rs=porRegion[reg];
+    const c4=prom(rs.map(r=>n(r.conectividad?.cobertura4g)));
+    const c5=prom(rs.map(r=>n(r.conectividad?.cobertura5g)));
+    const hg=prom(rs.map(r=>n(r.conectividad?.hogaresInternet)));
+    const sin=rs.reduce((s,r)=>s+(n(r.conectividad?.municipiosSinCobertura)||0),0);
+    const pf=rs.reduce((s,r)=>s+(n(r.apropiacion?.personasFormadas)||0),0);
+    const mt=rs.reduce((s,r)=>s+(n(r.apropiacion?.municipiosTramitesLinea)||0),0);
+    const ra=rs.reduce((s,r)=>s+(r.riesgos||[]).filter(x=>severidad(x).t==='Alta').length,0);
+    const cr=rs.reduce((s,r)=>s+DIMS.filter(d=>r.semaforos?.[d]==='critico').length,0);
+    tbReg.insertAdjacentHTML('beforeend',`<tr>
+      <td><strong>${esc(reg)}</strong></td><td class="center">${rs.length}</td>
+      <td>${barra(c4)}</td><td>${barra(c5)}</td><td>${barra(hg)}</td>
+      <td class="center">${sin}</td>
+      <td class="center">${pf.toLocaleString('es-CO')}</td><td class="center">${mt}</td>
+      <td class="center">${ra?`<span class="sev sev-alta">${ra}</span>`:'0'}</td>
+      <td class="center">${cr?`<span class="sev sev-alta">${cr}</span>`:'0'}</td></tr>`);
+  });
+
+  // Riesgos consolidados
+  const todos=[];
+  lista.forEach(r=>(r.riesgos||[]).forEach(x=>todos.push({...x,dep:r.identificacion.departamento,reg:r.identificacion.region})));
+  todos.sort((a,b)=>severidad(b).s-severidad(a).s);
+  const tbR=document.querySelector('#tblRiesgos tbody');
+  tbR.innerHTML=todos.length?todos.map(x=>{const s=severidad(x);return `<tr>
+    <td><span class="sev ${s.c}">${s.t}</span></td><td>${esc(x.reg)}</td><td>${esc(x.dep)}</td>
+    <td>${esc(x.dimension)}</td><td>${esc(x.descripcion)}</td><td>${esc(x.accion)}</td></tr>`;}).join('')
+    :'<tr><td colspan="6" class="vacio">Ningún reporte registra riesgos.</td></tr>';
+
+  // Temas críticos
+  const temas=[];
+  lista.forEach(r=>(r.temasCriticos||[]).forEach(t=>temas.push({...t,dep:r.identificacion.departamento,reg:r.identificacion.region})));
+  const ordenPlazo={"Inmediato (30 días)":1,"Corto (100 días)":2,"Primer año":3};
+  temas.sort((a,b)=>(ordenPlazo[a.plazo]||9)-(ordenPlazo[b.plazo]||9));
+  const tbT=document.querySelector('#tblTemas tbody');
+  tbT.innerHTML=temas.length?temas.map(t=>`<tr>
+    <td>${esc(t.plazo)}</td><td>${esc(t.reg)}</td><td>${esc(t.dep)}</td>
+    <td>${esc(t.tema)}</td><td>${esc(t.responsable)}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="vacio">Ningún reporte registra temas críticos.</td></tr>';
+}
+
+/* ---------- Exportar CSV consolidado ---------- */
+function exportarCSV(){
+  const lista=Object.values(reportes);
+  if(!lista.length){aviso('Cargue al menos un reporte antes de exportar.');return;}
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const filas=[["Región","Departamento","Enlace","Fecha corte","Cobertura 4G %","Cobertura 5G %","Hogares internet %","Total municipios","Mpios sin cobertura","Programas talento digital","Personas formadas","Mpios con trámites en línea","Trámites gobernación en línea","Mipymes beneficiadas","Incidentes ciberseguridad","Plan transformación digital","Capacidad respuesta ciber","Dependencia TIC","Presupuesto TIC (COP mill.)","Personal TIC","Sistemas/activos inventariados","Sistemas con fallas u obsoletos","Sistemas licenc. vencido","Contratos TIC vigentes","Inventario activos TIC","Política seguridad (MSPI)","Sem. conectividad","Sem. barreras","Sem. proyectos","Sem. apropiación","Sem. capacidad","Nº proyectos","Nº riesgos","Nº riesgos alta severidad","Nº temas críticos"].map(q).join(";")];
+  lista.sort((a,b)=>(a.identificacion.region||'').localeCompare(b.identificacion.region||'')||a.identificacion.departamento.localeCompare(b.identificacion.departamento))
+  .forEach(r=>{
+    const ra=(r.riesgos||[]).filter(x=>severidad(x).t==='Alta').length;
+    filas.push([r.identificacion.region,r.identificacion.departamento,r.identificacion.enlace,r.identificacion.fechaCorte,
+      r.conectividad?.cobertura4g,r.conectividad?.cobertura5g,r.conectividad?.hogaresInternet,
+      r.conectividad?.totalMunicipios,r.conectividad?.municipiosSinCobertura,
+      r.apropiacion?.programasTalento,r.apropiacion?.personasFormadas,r.apropiacion?.municipiosTramitesLinea,
+      r.apropiacion?.tramitesGobernacion,r.apropiacion?.mipymesBeneficiadas,r.apropiacion?.incidentesCiber,
+      r.apropiacion?.planTransformacion,r.apropiacion?.capacidadCiber,
+      r.capacidad?.dependencia,r.capacidad?.presupuesto,r.capacidad?.personal,
+      (r.capacidad?.sistemas||[]).length,
+      (r.capacidad?.sistemas||[]).filter(s=>['Operando con fallas','Obsoleto','Fuera de servicio'].includes(s.estado)).length,
+      (r.capacidad?.sistemas||[]).filter(s=>s.licenciamiento==='Vencido').length,
+      r.capacidad?.contratosVigentes,
+      r.capacidad?.inventarioActivos,r.capacidad?.politicaSeguridad,
+      ...DIMS.map(d=>ETIQ[r.semaforos?.[d]]||''),
+      (r.proyectos||[]).length,(r.riesgos||[]).length,ra,(r.temasCriticos||[]).length].map(q).join(";"));
+  });
+  const blob=new Blob(["\uFEFF"+filas.join("\n")],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='consolidado_regional_TIC.csv';a.click();
+  URL.revokeObjectURL(a.href);
+  aviso('CSV consolidado exportado.');
+}
+let msgTimer;
+function aviso(t){const m=document.getElementById('msg');m.textContent=t;clearTimeout(msgTimer);msgTimer=setTimeout(()=>m.textContent='',6000);}
+</script>
+</body>
+</html>
