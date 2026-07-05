@@ -2,7 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { crearUsuario, eliminarUsuario, type ResultadoAccion } from "@/app/admin/actions";
+import {
+  crearUsuario,
+  eliminarUsuario,
+  restablecerPassword,
+  type ResultadoAccion,
+} from "@/app/admin/actions";
 import type { Departamento, RolUsuario } from "@/lib/database.types";
 
 type PerfilFila = {
@@ -20,6 +25,15 @@ const ROL_LABEL: Record<RolUsuario, string> = {
   admin: "Admin",
 };
 
+// slug sin acentos para sugerir el correo genérico por departamento.
+function slug(nombre: string): string {
+  return nombre
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
 export function GestionUsuarios({
   departamentos,
   perfiles,
@@ -31,6 +45,7 @@ export function GestionUsuarios({
 }) {
   const router = useRouter();
   const [correo, setCorreo] = useState("");
+  const [correoEditado, setCorreoEditado] = useState(false);
   const [rol, setRol] = useState<RolUsuario>("enlace");
   const [departamento, setDepartamento] = useState("");
   const [nombre, setNombre] = useState("");
@@ -38,6 +53,15 @@ export function GestionUsuarios({
   const [pending, startTransition] = useTransition();
 
   const conEnlace = new Set(deptosConEnlace);
+
+  function onDepartamentoChange(codigo: string) {
+    setDepartamento(codigo);
+    // Si el admin no escribió el correo a mano, lo sugerimos por departamento.
+    if (rol === "enlace" && !correoEditado) {
+      const dep = departamentos.find((d) => d.codigo === codigo);
+      setCorreo(dep ? `enlace.${slug(dep.nombre)}@empalme-tic.gov.co` : "");
+    }
+  }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +71,7 @@ export function GestionUsuarios({
       setRes(r);
       if (r.ok) {
         setCorreo("");
+        setCorreoEditado(false);
         setNombre("");
         setDepartamento("");
         router.refresh();
@@ -63,11 +88,51 @@ export function GestionUsuarios({
     });
   }
 
+  function onRestablecer(id: string, correo: string) {
+    if (!confirm(`¿Generar una nueva contraseña para ${correo}? La anterior dejará de servir.`)) return;
+    startTransition(async () => {
+      const r = await restablecerPassword(id);
+      setRes(r);
+    });
+  }
+
   const inputCls =
     "w-full rounded-md border border-line bg-white px-3 py-2.5 text-[14.5px] outline-none focus:border-link focus:ring-2 focus:ring-link/30";
 
   return (
     <div className="grid gap-5">
+      {/* Credenciales generadas (aviso destacado) */}
+      {res?.credenciales && (
+        <div className="rounded-[10px] border-2 border-verde bg-verde-bg px-5 py-4">
+          <p className="text-sm font-semibold text-verde">{res.mensaje}</p>
+          <div className="mt-2 flex flex-col gap-1 font-mono text-[13.5px] text-ink sm:flex-row sm:gap-8">
+            <span>
+              <span className="text-steel">Correo:</span> {res.credenciales.correo}
+            </span>
+            <span>
+              <span className="text-steel">Contraseña:</span>{" "}
+              <strong>{res.credenciales.password}</strong>
+            </span>
+          </div>
+          <div className="mt-2 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard?.writeText(
+                  `Correo: ${res.credenciales!.correo}\nContraseña: ${res.credenciales!.password}\nIngrese en: https://empalme-mintic.vercel.app`,
+                )
+              }
+              className="rounded-md bg-navy px-3 py-1.5 text-[13px] font-semibold text-white transition hover:brightness-110"
+            >
+              Copiar credenciales
+            </button>
+            <span className="text-xs text-steel">
+              Entréguelas de forma segura. No se volverán a mostrar.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Formulario de alta */}
       <section className="overflow-hidden rounded-[10px] border border-line bg-card">
         <div className="border-b border-line bg-gradient-to-b from-white to-[#FAFBFC] px-5 py-3.5">
@@ -77,21 +142,10 @@ export function GestionUsuarios({
         </div>
         <form onSubmit={onSubmit} className="grid gap-4 px-5 py-5 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <label className="etiqueta">Correo institucional</label>
-            <input
-              type="email"
-              required
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
-              placeholder="enlace@gobernacion.gov.co"
-              className={inputCls}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
             <label className="etiqueta">Departamento {rol === "enlace" && <span className="text-rojo">*</span>}</label>
             <select
               value={departamento}
-              onChange={(e) => setDepartamento(e.target.value)}
+              onChange={(e) => onDepartamentoChange(e.target.value)}
               disabled={rol !== "enlace"}
               className={`${inputCls} disabled:bg-paper disabled:text-steel`}
             >
@@ -103,6 +157,20 @@ export function GestionUsuarios({
                 </option>
               ))}
             </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="etiqueta">Correo (usuario de acceso)</label>
+            <input
+              type="email"
+              required
+              value={correo}
+              onChange={(e) => {
+                setCorreo(e.target.value);
+                setCorreoEditado(true);
+              }}
+              placeholder="enlace.departamento@empalme-tic.gov.co"
+              className={inputCls}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="etiqueta">Rol</label>
@@ -127,12 +195,17 @@ export function GestionUsuarios({
               disabled={pending}
               className="rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
             >
-              {pending ? "Guardando…" : "Crear usuario"}
+              {pending ? "Creando…" : "Crear usuario y generar contraseña"}
             </button>
-            {res && (
+            {res && !res.credenciales && (
               <span className={`text-sm ${res.ok ? "text-verde" : "text-rojo"}`}>{res.mensaje}</span>
             )}
           </div>
+          <p className="text-xs text-steel sm:col-span-2">
+            Se genera una contraseña automáticamente y se muestra arriba para que
+            la entregue. La persona ingresa con ese correo y contraseña; no
+            necesita recibir ningún mensaje.
+          </p>
         </form>
       </section>
 
@@ -176,13 +249,22 @@ export function GestionUsuarios({
                       {p.departamento_nombre ?? <span className="text-steel">—</span>}
                     </td>
                     <td className="border-b border-line px-2 py-2 text-right">
-                      <button
-                        onClick={() => onEliminar(p.id, p.correo)}
-                        disabled={pending}
-                        className="text-[13px] font-semibold text-rojo hover:underline disabled:opacity-50"
-                      >
-                        Eliminar
-                      </button>
+                      <div className="flex justify-end gap-3">
+                        <button
+                          onClick={() => onRestablecer(p.id, p.correo)}
+                          disabled={pending}
+                          className="whitespace-nowrap text-[13px] font-semibold text-link hover:underline disabled:opacity-50"
+                        >
+                          Restablecer clave
+                        </button>
+                        <button
+                          onClick={() => onEliminar(p.id, p.correo)}
+                          disabled={pending}
+                          className="text-[13px] font-semibold text-rojo hover:underline disabled:opacity-50"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

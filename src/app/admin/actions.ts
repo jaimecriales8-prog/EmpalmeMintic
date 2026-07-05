@@ -1,13 +1,22 @@
 "use server";
 
+import { randomInt } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requirePerfil } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { RolUsuario } from "@/lib/database.types";
 
-export type ResultadoAccion = { ok: boolean; mensaje: string };
+export type ResultadoAccion = { ok: boolean; mensaje: string; credenciales?: { correo: string; password: string } };
 
 const ROLES: RolUsuario[] = ["enlace", "central", "admin"];
+
+// Contraseña legible y fuerte: 12 caracteres sin ambiguos (0/O, 1/l/I).
+function generarPassword(): string {
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  let p = "";
+  for (let i = 0; i < 12; i++) p += abc[randomInt(abc.length)];
+  return p;
+}
 
 async function buscarUsuarioPorCorreo(admin: ReturnType<typeof createAdminClient>, correo: string) {
   // La Admin API pagina; recorremos hasta encontrar el correo.
@@ -21,12 +30,14 @@ async function buscarUsuarioPorCorreo(admin: ReturnType<typeof createAdminClient
   return null;
 }
 
-// Crea (o reasigna) un usuario por correo con su rol y, si es enlace, su depto.
+// Crea (o reasigna) un usuario por correo con su rol, depto y contraseña.
+// Si no se envía contraseña, se genera una y se devuelve para entregarla.
 export async function crearUsuario(input: {
   correo: string;
   rol: RolUsuario;
   departamento: string | null;
   nombre: string;
+  password?: string;
 }): Promise<ResultadoAccion> {
   await requirePerfil(["admin"]);
 
@@ -34,9 +45,13 @@ export async function crearUsuario(input: {
   const rol = ROLES.includes(input.rol) ? input.rol : "enlace";
   const departamento = rol === "enlace" ? (input.departamento || null) : null;
   const nombre = input.nombre.trim() || correo;
+  const password = (input.password ?? "").trim() || generarPassword();
 
   if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
     return { ok: false, mensaje: "Ingrese un correo válido." };
+  }
+  if (password.length < 8) {
+    return { ok: false, mensaje: "La contraseña debe tener al menos 8 caracteres." };
   }
   if (rol === "enlace" && !departamento) {
     return { ok: false, mensaje: "Seleccione el departamento del enlace." };
@@ -44,10 +59,11 @@ export async function crearUsuario(input: {
 
   const admin = createAdminClient();
 
-  // 1) Crear el usuario de auth (confirmado). Si ya existe, lo reutilizamos.
+  // 1) Crear el usuario de auth con contraseña. Si ya existe, la actualizamos.
   let userId: string;
-  const { data: creado, error: errCrear } = await admin.auth.admin.createUser({
+  const { data: creado } = await admin.auth.admin.createUser({
     email: correo,
+    password,
     email_confirm: true,
   });
   if (creado?.user) {
@@ -55,9 +71,10 @@ export async function crearUsuario(input: {
   } else {
     const existente = await buscarUsuarioPorCorreo(admin, correo);
     if (!existente) {
-      return { ok: false, mensaje: errCrear?.message ?? "No se pudo crear el usuario." };
+      return { ok: false, mensaje: "No se pudo crear el usuario. ¿El correo ya está en uso con otro estado?" };
     }
     userId = existente.id;
+    await admin.auth.admin.updateUserById(userId, { password });
   }
 
   // 2) Upsert del perfil (rol + departamento).
@@ -69,7 +86,28 @@ export async function crearUsuario(input: {
   }
 
   revalidatePath("/admin");
-  return { ok: true, mensaje: `Listo. ${correo} ya puede ingresar con enlace mágico.` };
+  return {
+    ok: true,
+    mensaje: "Usuario creado. Entregue estas credenciales:",
+    credenciales: { correo, password },
+  };
+}
+
+// Genera y asigna una nueva contraseña a un usuario existente.
+export async function restablecerPassword(userId: string): Promise<ResultadoAccion> {
+  await requirePerfil(["admin"]);
+  const admin = createAdminClient();
+  const password = generarPassword();
+  const { data, error } = await admin.auth.admin.updateUserById(userId, { password });
+  if (error || !data?.user) {
+    return { ok: false, mensaje: "No se pudo restablecer la contraseña." };
+  }
+  revalidatePath("/admin");
+  return {
+    ok: true,
+    mensaje: "Nueva contraseña generada. Entréguela al usuario:",
+    credenciales: { correo: data.user.email ?? "", password },
+  };
 }
 
 // Elimina un usuario (perfil + cuenta de auth).

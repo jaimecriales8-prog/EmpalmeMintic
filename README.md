@@ -32,6 +32,15 @@ lo consolida por regiones (Caribe, Andina, Pacífica, Orinoquía, Amazonía, Ins
    npm run dev
    ```
 
+## Acceso de usuarios (correo + contraseña)
+
+El acceso principal es por **correo y contraseña**, para no depender del envío de
+correos. Desde `/admin`, al crear cada usuario se genera una contraseña que se
+muestra una vez para entregarla al enlace (por un canal seguro). El enlace
+ingresa en `/login` con ese correo y contraseña. También existe la opción de
+"enlace mágico" por correo, pero requiere configurar SMTP en Supabase
+(Authentication → SMTP) porque el correo integrado está muy limitado.
+
 ## Primer usuario administrador
 
 1. Supabase → **Authentication → Users** → crear tu usuario con tu correo.
@@ -53,7 +62,7 @@ lo consolida por regiones (Caribe, Andina, Pacífica, Orinoquía, Amazonía, Ins
 
 | Ruta | Acceso | Descripción |
 |---|---|---|
-| `/login` | público | Ingreso por enlace mágico |
+| `/login` | público | Ingreso por correo + contraseña (o enlace mágico) |
 | `/formulario` | enlace | Instrumento del departamento propio |
 | `/consolidado` | central, admin | Dashboard regional |
 | `/reportes/[codigo]` | central, admin | Detalle de un reporte |
