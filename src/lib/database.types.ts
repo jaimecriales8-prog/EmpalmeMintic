@@ -9,7 +9,10 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type RolUsuario = "enlace" | "central" | "admin";
+export type RolUsuario = "enlace" | "central" | "admin" | "enlace_ciudad";
+export type PagoLinea = "Sí, en línea" | "Parcial" | "No";
+export type DatosAbiertos = "Portal activo" | "En construcción" | "No existe";
+export type CentroMonitoreo = "C4/C5 operativo" | "Parcial / en formación" | "No existe";
 export type EstadoSemaforo = "critico" | "riesgo" | "estable";
 export type EstadoReporte = "borrador" | "enviado" | "validado";
 export type EstadoProyecto =
@@ -104,6 +107,7 @@ export type Database = {
           correo: string;
           rol: RolUsuario;
           departamento_codigo: string | null;
+          ciudad_codigo: string | null;
           cargo: string | null;
           entidad: string | null;
           telefono: string | null;
@@ -115,6 +119,7 @@ export type Database = {
           correo: string;
           rol?: RolUsuario;
           departamento_codigo?: string | null;
+          ciudad_codigo?: string | null;
           cargo?: string | null;
           entidad?: string | null;
           telefono?: string | null;
@@ -126,6 +131,7 @@ export type Database = {
           correo?: string;
           rol?: RolUsuario;
           departamento_codigo?: string | null;
+          ciudad_codigo?: string | null;
           cargo?: string | null;
           entidad?: string | null;
           telefono?: string | null;
@@ -445,6 +451,98 @@ export type Database = {
           },
         ];
       };
+      ciudades: {
+        Row: { codigo: string; nombre: string; departamento_codigo: string; region: string };
+        Insert: { codigo: string; nombre: string; departamento_codigo: string; region: string };
+        Update: { codigo?: string; nombre?: string; departamento_codigo?: string; region?: string };
+        Relationships: [];
+      };
+      reportes_ciudad: {
+        Row: {
+          id: string;
+          ciudad_codigo: string;
+          estado: EstadoReporte;
+          fecha_corte: string | null;
+          cobertura_4g: number | null;
+          cobertura_5g: number | null;
+          hogares_internet: number | null;
+          comunas_total: number | null;
+          comunas_sin_cobertura: number | null;
+          zonas_wifi_publico: number | null;
+          fuente_conectividad: string | null;
+          zonas_criticas: string | null;
+          infraestructura_critica: string | null;
+          tributos: string[] | null;
+          detalle_tributos: string | null;
+          barreras_despliegue: string | null;
+          programas_talento: number | null;
+          personas_formadas: number | null;
+          tramites_municipales_linea: number | null;
+          porcentaje_tramites_digital: number | null;
+          mipymes_beneficiadas: number | null;
+          pago_impuestos_linea: PagoLinea | null;
+          datos_abiertos: DatosAbiertos | null;
+          plan_transformacion: PlanTd | null;
+          fuente_apropiacion: string | null;
+          obs_apropiacion: string | null;
+          incidentes_ciber: number | null;
+          camaras_videovigilancia: number | null;
+          centro_monitoreo: CentroMonitoreo | null;
+          capacidad_respuesta_ciber: CapacidadCiber | null;
+          dependencia: DependenciaTic | null;
+          presupuesto_tic: number | null;
+          personal_tic: number | null;
+          contratos_vigentes: number | null;
+          inventario: InventarioActivos | null;
+          politica_seguridad: PoliticaMspi | null;
+          fuente_capacidad: string | null;
+          obs_capacidad: string | null;
+          sem_conectividad: EstadoSemaforo | null;
+          sem_barreras: EstadoSemaforo | null;
+          sem_proyectos: EstadoSemaforo | null;
+          sem_apropiacion: EstadoSemaforo | null;
+          sem_capacidad: EstadoSemaforo | null;
+          observaciones_generales: string | null;
+          creado_por: string | null;
+          creado_en: string;
+          actualizado_en: string;
+          enviado_en: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["reportes_ciudad"]["Row"]> & { ciudad_codigo: string };
+        Update: Partial<Database["public"]["Tables"]["reportes_ciudad"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "reportes_ciudad_ciudad_codigo_fkey";
+            columns: ["ciudad_codigo"];
+            referencedRelation: "ciudades";
+            referencedColumns: ["codigo"];
+          },
+        ];
+      };
+      proyectos_ciudad: {
+        Row: { id: string; reporte_id: string; nombre: string; fuente: string | null; estado: EstadoProyecto | null; avance: number | null; riesgos: string | null; orden: number | null };
+        Insert: { id?: string; reporte_id: string; nombre: string; fuente?: string | null; estado?: EstadoProyecto | null; avance?: number | null; riesgos?: string | null; orden?: number | null };
+        Update: Partial<Database["public"]["Tables"]["proyectos_ciudad"]["Row"]>;
+        Relationships: [];
+      };
+      riesgos_ciudad: {
+        Row: { id: string; reporte_id: string; descripcion: string; dimension: DimensionRiesgo | null; probabilidad: NivelProb | null; impacto: NivelImpacto | null; accion: string | null; orden: number | null };
+        Insert: { id?: string; reporte_id: string; descripcion: string; dimension?: DimensionRiesgo | null; probabilidad?: NivelProb | null; impacto?: NivelImpacto | null; accion?: string | null; orden?: number | null };
+        Update: Partial<Database["public"]["Tables"]["riesgos_ciudad"]["Row"]>;
+        Relationships: [];
+      };
+      temas_ciudad: {
+        Row: { id: string; reporte_id: string; tema: string; plazo: PlazoTema | null; responsable: string | null; orden: number | null };
+        Insert: { id?: string; reporte_id: string; tema: string; plazo?: PlazoTema | null; responsable?: string | null; orden?: number | null };
+        Update: Partial<Database["public"]["Tables"]["temas_ciudad"]["Row"]>;
+        Relationships: [];
+      };
+      sistemas_ciudad: {
+        Row: { id: string; reporte_id: string; nombre: string; tipo: TipoSistema | null; estado: EstadoSistema | null; licenciamiento: LicenciamientoSistema | null; observacion: string | null; orden: number | null };
+        Insert: { id?: string; reporte_id: string; nombre: string; tipo?: TipoSistema | null; estado?: EstadoSistema | null; licenciamiento?: LicenciamientoSistema | null; observacion?: string | null; orden?: number | null };
+        Update: Partial<Database["public"]["Tables"]["sistemas_ciudad"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: {
       v_severidad_riesgos: {
@@ -531,3 +629,9 @@ export type ConsolidadoRegional =
   Database["public"]["Views"]["v_consolidado_regional"]["Row"];
 export type SeveridadRiesgo =
   Database["public"]["Views"]["v_severidad_riesgos"]["Row"];
+export type Ciudad = Database["public"]["Tables"]["ciudades"]["Row"];
+export type ReporteCiudad = Database["public"]["Tables"]["reportes_ciudad"]["Row"];
+export type ProyectoCiudad = Database["public"]["Tables"]["proyectos_ciudad"]["Row"];
+export type RiesgoCiudad = Database["public"]["Tables"]["riesgos_ciudad"]["Row"];
+export type TemaCiudad = Database["public"]["Tables"]["temas_ciudad"]["Row"];
+export type SistemaCiudad = Database["public"]["Tables"]["sistemas_ciudad"]["Row"];

@@ -36,6 +36,7 @@ export async function crearUsuario(input: {
   correo: string;
   rol: RolUsuario;
   departamento: string | null;
+  ciudad?: string | null;
   nombre: string;
   password?: string;
 }): Promise<ResultadoAccion> {
@@ -44,6 +45,7 @@ export async function crearUsuario(input: {
   const correo = input.correo.trim().toLowerCase();
   const rol = ROLES.includes(input.rol) ? input.rol : "enlace";
   const departamento = rol === "enlace" ? (input.departamento || null) : null;
+  const ciudad = rol === "enlace_ciudad" ? (input.ciudad || null) : null;
   const nombre = input.nombre.trim() || correo;
   const password = (input.password ?? "").trim() || generarPassword();
 
@@ -55,6 +57,9 @@ export async function crearUsuario(input: {
   }
   if (rol === "enlace" && !departamento) {
     return { ok: false, mensaje: "Seleccione el departamento del enlace." };
+  }
+  if (rol === "enlace_ciudad" && !ciudad) {
+    return { ok: false, mensaje: "Seleccione la ciudad del enlace." };
   }
 
   const admin = createAdminClient();
@@ -77,10 +82,10 @@ export async function crearUsuario(input: {
     await admin.auth.admin.updateUserById(userId, { password });
   }
 
-  // 2) Upsert del perfil (rol + departamento).
+  // 2) Upsert del perfil (rol + departamento o ciudad).
   const { error: errPerfil } = await admin
     .from("perfiles")
-    .upsert({ id: userId, correo, nombre, rol, departamento_codigo: departamento }, { onConflict: "id" });
+    .upsert({ id: userId, correo, nombre, rol, departamento_codigo: departamento, ciudad_codigo: ciudad }, { onConflict: "id" });
   if (errPerfil) {
     return { ok: false, mensaje: "Usuario creado, pero falló el perfil: " + errPerfil.message };
   }

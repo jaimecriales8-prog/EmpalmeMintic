@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- ---------- Tipos enumerados ----------
-create type rol_usuario as enum ('enlace', 'central', 'admin');
+create type rol_usuario as enum ('enlace', 'central', 'admin', 'enlace_ciudad');
 create type estado_semaforo as enum ('critico', 'riesgo', 'estable');
 create type estado_reporte as enum ('borrador', 'enviado', 'validado');
 create type estado_proyecto as enum ('En ejecución', 'Suspendido', 'En estructuración', 'Finalizado', 'En riesgo de pérdida');
@@ -48,6 +48,7 @@ create table perfiles (
   correo              text not null,
   rol                 rol_usuario not null default 'enlace',
   departamento_codigo text references departamentos(codigo),  -- obligatorio para rol 'enlace'
+  ciudad_codigo       text,  -- obligatorio para rol 'enlace_ciudad'; FK a ciudades se agrega abajo
   cargo               text,
   entidad             text,
   telefono            text,
@@ -198,7 +199,9 @@ create policy perfil_update_propio on perfiles for update to authenticated
     id = auth.uid()
     and rol = (select p.rol from perfiles p where p.id = auth.uid())
     and departamento_codigo is not distinct from
-        (select p.departamento_codigo from perfiles p where p.id = auth.uid()));
+        (select p.departamento_codigo from perfiles p where p.id = auth.uid())
+    and ciudad_codigo is not distinct from
+        (select p.ciudad_codigo from perfiles p where p.id = auth.uid()));
 create policy perfil_admin on perfiles for all to authenticated
   using (mi_rol() = 'admin') with check (mi_rol() = 'admin');
 
@@ -279,3 +282,236 @@ group by d.region;
 -- Las vistas heredan RLS de las tablas base (security_invoker por defecto en PG15+).
 alter view v_severidad_riesgos set (security_invoker = true);
 alter view v_consolidado_regional set (security_invoker = true);
+
+
+-- ============================================================
+-- INSTRUMENTO PARA CIUDADES CAPITALES (segundo tipo de reporte)
+-- Extiende el schema; no modifica el instrumento departamental.
+-- ============================================================
+
+
+-- Nuevos enums específicos de ciudad
+do $$ begin
+  if not exists (select 1 from pg_type where typname = 'pago_linea') then
+    create type pago_linea as enum ('Sí, en línea', 'Parcial', 'No');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'datos_abiertos_estado') then
+    create type datos_abiertos_estado as enum ('Portal activo', 'En construcción', 'No existe');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'centro_monitoreo_estado') then
+    create type centro_monitoreo_estado as enum ('C4/C5 operativo', 'Parcial / en formación', 'No existe');
+  end if;
+end $$;
+
+-- Catálogo de ciudades capitales (código DIVIPOLA municipal)
+create table if not exists ciudades (
+  codigo              text primary key,
+  nombre              text not null,
+  departamento_codigo text not null references departamentos(codigo),
+  region              text not null
+);
+
+insert into ciudades (codigo, nombre, departamento_codigo, region) values
+ ('91001','Leticia','91','Amazonía'),
+ ('05001','Medellín','05','Andina'),
+ ('81001','Arauca','81','Orinoquía'),
+ ('08001','Barranquilla','08','Caribe'),
+ ('13001','Cartagena de Indias','13','Caribe'),
+ ('15001','Tunja','15','Andina'),
+ ('17001','Manizales','17','Andina'),
+ ('18001','Florencia','18','Amazonía'),
+ ('85001','Yopal','85','Orinoquía'),
+ ('19001','Popayán','19','Pacífica'),
+ ('20001','Valledupar','20','Caribe'),
+ ('27001','Quibdó','27','Pacífica'),
+ ('23001','Montería','23','Caribe'),
+ ('11001','Bogotá D.C.','25','Andina'),
+ ('94001','Inírida','94','Amazonía'),
+ ('95001','San José del Guaviare','95','Amazonía'),
+ ('41001','Neiva','41','Andina'),
+ ('44001','Riohacha','44','Caribe'),
+ ('47001','Santa Marta','47','Caribe'),
+ ('50001','Villavicencio','50','Orinoquía'),
+ ('52001','Pasto','52','Pacífica'),
+ ('54001','Cúcuta','54','Andina'),
+ ('86001','Mocoa','86','Amazonía'),
+ ('63001','Armenia','63','Andina'),
+ ('66001','Pereira','66','Andina'),
+ ('88001','San Andrés','88','Insular'),
+ ('68001','Bucaramanga','68','Andina'),
+ ('70001','Sincelejo','70','Caribe'),
+ ('73001','Ibagué','73','Andina'),
+ ('76001','Santiago de Cali','76','Pacífica'),
+ ('97001','Mitú','97','Amazonía'),
+ ('99001','Puerto Carreño','99','Orinoquía')
+on conflict (codigo) do nothing;
+
+-- perfiles: soporte de enlace de ciudad (la columna ciudad_codigo ya está en la
+-- tabla; aquí se agrega la llave foránea a ciudades y la restricción de rol).
+alter table perfiles add column if not exists ciudad_codigo text;
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'perfiles_ciudad_codigo_fkey') then
+    alter table perfiles add constraint perfiles_ciudad_codigo_fkey
+      foreign key (ciudad_codigo) references ciudades(codigo);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'enlace_ciudad_requiere_ciudad') then
+    alter table perfiles add constraint enlace_ciudad_requiere_ciudad
+      check (rol <> 'enlace_ciudad' or ciudad_codigo is not null);
+  end if;
+end $$;
+
+-- Reporte de ciudad (cabecera)
+create table if not exists reportes_ciudad (
+  id                  uuid primary key default gen_random_uuid(),
+  ciudad_codigo       text not null references ciudades(codigo),
+  estado              estado_reporte not null default 'borrador',
+  fecha_corte         date,
+
+  -- Conectividad urbana
+  cobertura_4g            numeric(5,2) check (cobertura_4g between 0 and 100),
+  cobertura_5g            numeric(5,2) check (cobertura_5g between 0 and 100),
+  hogares_internet        numeric(5,2) check (hogares_internet between 0 and 100),
+  comunas_total           int check (comunas_total >= 0),
+  comunas_sin_cobertura   int check (comunas_sin_cobertura >= 0),
+  zonas_wifi_publico      int check (zonas_wifi_publico >= 0),
+  fuente_conectividad     text,
+  zonas_criticas          text,
+  infraestructura_critica text,
+
+  -- Barreras
+  tributos            text[] default '{}',
+  detalle_tributos    text,
+  barreras_despliegue text,
+
+  -- Ciudad inteligente y servicios digitales
+  programas_talento          int check (programas_talento >= 0),
+  personas_formadas          int check (personas_formadas >= 0),
+  tramites_municipales_linea int check (tramites_municipales_linea >= 0),
+  porcentaje_tramites_digital numeric(5,2) check (porcentaje_tramites_digital between 0 and 100),
+  mipymes_beneficiadas       int check (mipymes_beneficiadas >= 0),
+  pago_impuestos_linea       pago_linea,
+  datos_abiertos             datos_abiertos_estado,
+  plan_transformacion        plan_td,
+  fuente_apropiacion         text,
+  obs_apropiacion            varchar(300),
+
+  -- Seguridad ciudadana y ciberseguridad
+  incidentes_ciber           int check (incidentes_ciber >= 0),
+  camaras_videovigilancia    int check (camaras_videovigilancia >= 0),
+  centro_monitoreo           centro_monitoreo_estado,
+  capacidad_respuesta_ciber  capacidad_ciber,
+
+  -- Capacidad institucional
+  dependencia          dependencia_tic,
+  presupuesto_tic      numeric(14,2) check (presupuesto_tic >= 0),
+  personal_tic         int check (personal_tic >= 0),
+  contratos_vigentes   int check (contratos_vigentes >= 0),
+  inventario           inventario_activos,
+  politica_seguridad   politica_mspi,
+  fuente_capacidad     text,
+  obs_capacidad        varchar(300),
+
+  -- Semáforos
+  sem_conectividad estado_semaforo,
+  sem_barreras     estado_semaforo,
+  sem_proyectos    estado_semaforo,
+  sem_apropiacion  estado_semaforo,
+  sem_capacidad    estado_semaforo,
+
+  observaciones_generales text,
+
+  creado_por    uuid references perfiles(id),
+  creado_en     timestamptz not null default now(),
+  actualizado_en timestamptz not null default now(),
+  enviado_en    timestamptz,
+
+  constraint un_reporte_por_ciudad unique (ciudad_codigo)
+);
+
+create table if not exists proyectos_ciudad (
+  id uuid primary key default gen_random_uuid(),
+  reporte_id uuid not null references reportes_ciudad(id) on delete cascade,
+  nombre text not null, fuente text, estado estado_proyecto,
+  avance numeric(5,2) check (avance between 0 and 100), riesgos text, orden int default 0
+);
+create table if not exists riesgos_ciudad (
+  id uuid primary key default gen_random_uuid(),
+  reporte_id uuid not null references reportes_ciudad(id) on delete cascade,
+  descripcion text not null, dimension dimension_riesgo,
+  probabilidad nivel_prob, impacto nivel_impacto, accion text, orden int default 0
+);
+create table if not exists temas_ciudad (
+  id uuid primary key default gen_random_uuid(),
+  reporte_id uuid not null references reportes_ciudad(id) on delete cascade,
+  tema text not null, plazo plazo_tema, responsable text, orden int default 0
+);
+create table if not exists sistemas_ciudad (
+  id uuid primary key default gen_random_uuid(),
+  reporte_id uuid not null references reportes_ciudad(id) on delete cascade,
+  nombre text not null, tipo tipo_sistema, estado estado_sistema,
+  licenciamiento licenciamiento_sistema, observacion text, orden int default 0
+);
+
+-- Trigger de actualización
+drop trigger if exists trg_reportes_ciudad_touch on reportes_ciudad;
+create trigger trg_reportes_ciudad_touch before update on reportes_ciudad
+  for each row execute function touch_actualizado();
+
+-- Función auxiliar RLS
+create or replace function mi_ciudad() returns text
+language sql stable security definer set search_path = public as
+$$ select ciudad_codigo from perfiles where id = auth.uid() $$;
+
+-- RLS
+alter table ciudades         enable row level security;
+alter table reportes_ciudad  enable row level security;
+alter table proyectos_ciudad enable row level security;
+alter table riesgos_ciudad   enable row level security;
+alter table temas_ciudad     enable row level security;
+alter table sistemas_ciudad  enable row level security;
+
+drop policy if exists ciu_select on ciudades;
+create policy ciu_select on ciudades for select to authenticated using (true);
+
+drop policy if exists repc_select on reportes_ciudad;
+create policy repc_select on reportes_ciudad for select to authenticated
+  using (mi_rol() in ('central','admin') or ciudad_codigo = mi_ciudad());
+drop policy if exists repc_insert on reportes_ciudad;
+create policy repc_insert on reportes_ciudad for insert to authenticated
+  with check ((mi_rol() = 'enlace_ciudad' and ciudad_codigo = mi_ciudad()) or mi_rol() = 'admin');
+drop policy if exists repc_update on reportes_ciudad;
+create policy repc_update on reportes_ciudad for update to authenticated
+  using ((mi_rol() = 'enlace_ciudad' and ciudad_codigo = mi_ciudad() and estado = 'borrador')
+         or mi_rol() in ('central','admin'))
+  with check ((mi_rol() = 'enlace_ciudad' and ciudad_codigo = mi_ciudad() and estado in ('borrador','enviado'))
+         or mi_rol() in ('central','admin'));
+drop policy if exists repc_delete on reportes_ciudad;
+create policy repc_delete on reportes_ciudad for delete to authenticated
+  using (mi_rol() = 'admin');
+
+create or replace function puede_ver_reporte_ciudad(rid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from reportes_ciudad r where r.id = rid
+    and (mi_rol() in ('central','admin') or r.ciudad_codigo = mi_ciudad()))
+$$;
+create or replace function puede_editar_reporte_ciudad(rid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from reportes_ciudad r where r.id = rid
+    and ((mi_rol() = 'enlace_ciudad' and r.ciudad_codigo = mi_ciudad() and r.estado = 'borrador')
+         or mi_rol() in ('central','admin')))
+$$;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['proyectos_ciudad','riesgos_ciudad','temas_ciudad','sistemas_ciudad'] loop
+    execute format('drop policy if exists %I on %I', t || '_select', t);
+    execute format('drop policy if exists %I on %I', t || '_insert', t);
+    execute format('drop policy if exists %I on %I', t || '_update', t);
+    execute format('drop policy if exists %I on %I', t || '_delete', t);
+    execute format('create policy %I on %I for select to authenticated using (puede_ver_reporte_ciudad(reporte_id))', t || '_select', t);
+    execute format('create policy %I on %I for insert to authenticated with check (puede_editar_reporte_ciudad(reporte_id))', t || '_insert', t);
+    execute format('create policy %I on %I for update to authenticated using (puede_editar_reporte_ciudad(reporte_id)) with check (puede_editar_reporte_ciudad(reporte_id))', t || '_update', t);
+    execute format('create policy %I on %I for delete to authenticated using (puede_editar_reporte_ciudad(reporte_id))', t || '_delete', t);
+  end loop;
+end $$;

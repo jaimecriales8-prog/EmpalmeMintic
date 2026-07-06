@@ -2,6 +2,7 @@ import type { Perfil } from "@/lib/database.types";
 
 const ROL_LABEL: Record<Perfil["rol"], string> = {
   enlace: "Enlace departamental",
+  enlace_ciudad: "Enlace de ciudad",
   central: "Equipo central",
   admin: "Administración",
 };

@@ -28,7 +28,9 @@ export async function getSesion(): Promise<Sesion | null> {
 
 /** Ruta según el rol del perfil. */
 export function rutaInicio(rol: RolUsuario): string {
-  return rol === "enlace" ? "/formulario" : "/consolidado";
+  if (rol === "enlace") return "/formulario";
+  if (rol === "enlace_ciudad") return "/formulario-ciudad";
+  return "/consolidado";
 }
 
 /**
