@@ -1,11 +1,12 @@
 import Link from "next/link";
 
 const ITEMS = [
-  { href: "/consolidado", label: "Consolidado", key: "consolidado" },
+  { href: "/consolidado", label: "Departamentos", key: "consolidado" },
   { href: "/analisis", label: "Análisis", key: "analisis" },
+  { href: "/ciudades", label: "Ciudades", key: "ciudades" },
 ] as const;
 
-export function NavCentral({ activo }: { activo: "consolidado" | "analisis" }) {
+export function NavCentral({ activo }: { activo: "consolidado" | "analisis" | "ciudades" }) {
   return (
     <nav className="flex gap-1 border-b border-line print:hidden">
       {ITEMS.map((it) => (

@@ -65,8 +65,10 @@ ingresa en `/login` con ese correo y contraseña. También existe la opción de
 | `/login` | público | Ingreso por correo + contraseña (o enlace mágico) |
 | `/formulario` | enlace | Instrumento del departamento propio |
 | `/formulario-ciudad` | enlace_ciudad | Instrumento de la ciudad capital propia |
-| `/consolidado` | central, admin | Dashboard regional |
+| `/consolidado` | central, admin | Dashboard regional (departamentos) |
 | `/analisis` | central, admin | Análisis por nivel (nacional/regional/departamental) |
+| `/ciudades` | central, admin | Consolidado de ciudades capitales |
+| `/reportes-ciudad/[codigo]` | central, admin | Detalle de un reporte de ciudad |
 | `/reportes/[codigo]` | central, admin | Detalle de un reporte |
 | `/admin` | admin | Gestión de perfiles |
 
