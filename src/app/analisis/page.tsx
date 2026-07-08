@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
 import { NavCentral } from "@/components/nav-central";
 import { SelectorNivel } from "@/components/analisis/selector-nivel";
+import { BotonExportarPdf } from "@/components/analisis/boton-exportar-pdf";
 import { GraficosConsolidado, Dona, Barra } from "@/components/consolidado/graficos";
 import { DIMS, SEM_ETIQUETA, pillClase, ordenarRegiones, ORDEN_PLAZO } from "@/lib/consolidado";
 import { metricasDe, distDe, comparar, ordenarPorCriticidad, promedio, criticosDe } from "@/lib/analisis";
@@ -287,7 +288,10 @@ function AnalisisDepartamento(p: {
   if (!reporte) {
     return (
       <>
-        <Breadcrumb region={region} depto={dep.nombre} />
+        <FilaBreadcrumb>
+          <Breadcrumb region={region} depto={dep.nombre} />
+          <BotonExportarPdf nombreArchivo={`Analisis_TIC_${dep.nombre}`} />
+        </FilaBreadcrumb>
         <Bloque titulo={`${dep.nombre} · ${region}`}>
           <p className="text-sm text-steel">Este departamento aún no ha enviado su reporte, por lo que no hay análisis disponible.</p>
         </Bloque>
@@ -308,7 +312,10 @@ function AnalisisDepartamento(p: {
 
   return (
     <>
-      <Breadcrumb region={region} depto={dep.nombre} />
+      <FilaBreadcrumb>
+        <Breadcrumb region={region} depto={dep.nombre} />
+        <BotonExportarPdf nombreArchivo={`Analisis_TIC_${dep.nombre}_${r.fecha_corte ?? ""}`} />
+      </FilaBreadcrumb>
 
       <Bloque titulo={`${dep.nombre} · Región ${region}`} hint={`Reporte ${r.estado}${r.fecha_corte ? ` · corte ${r.fecha_corte}` : ""}`}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -368,6 +375,9 @@ function Vacio() {
       Aún no hay reportes enviados. El análisis se generará automáticamente cuando los enlaces envíen su información.
     </div>
   );
+}
+function FilaBreadcrumb({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-wrap items-center justify-between gap-2">{children}</div>;
 }
 function Breadcrumb({ region, depto }: { region: string; depto?: string }) {
   return (

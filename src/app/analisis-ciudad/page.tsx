@@ -5,6 +5,7 @@ import { Masthead } from "@/components/masthead";
 import { NavCentral } from "@/components/nav-central";
 import { SubNavCiudades } from "@/components/ciudades/sub-nav-ciudades";
 import { SelectorNivelCiudad } from "@/components/analisis/selector-nivel-ciudad";
+import { BotonExportarPdf } from "@/components/analisis/boton-exportar-pdf";
 import { GraficosConsolidado, Dona, Barra } from "@/components/consolidado/graficos";
 import { DIMS, SEM_ETIQUETA, pillClase, severidadDe, ordenarRegiones, ORDEN_PLAZO } from "@/lib/consolidado";
 import { metricasCiudad, distCiudad, comparar, ordenarCiudadesPorCriticidad, promedio, criticosCiudad } from "@/lib/analisis";
@@ -188,7 +189,15 @@ function NivelCiudad(p: { codigo: string; ciuByCodigo: Map<string, Ciudad>; repo
   const promRegion = { c4: promedio(repsRegion.map((r) => r.cobertura_4g)), c5: promedio(repsRegion.map((r) => r.cobertura_5g)), h: promedio(repsRegion.map((r) => r.hogares_internet)) };
 
   if (!reporte) {
-    return (<><Breadcrumb region={ciu.region} ciudad={ciu.nombre} /><Bloque titulo={`${ciu.nombre} · ${ciu.region}`}><p className="text-sm text-steel">Esta ciudad aún no ha enviado su reporte.</p></Bloque></>);
+    return (
+      <>
+        <FilaBreadcrumb>
+          <Breadcrumb region={ciu.region} ciudad={ciu.nombre} />
+          <BotonExportarPdf nombreArchivo={`Analisis_TIC_${ciu.nombre}`} />
+        </FilaBreadcrumb>
+        <Bloque titulo={`${ciu.nombre} · ${ciu.region}`}><p className="text-sm text-steel">Esta ciudad aún no ha enviado su reporte.</p></Bloque>
+      </>
+    );
   }
   const r = reporte;
   const riesgosDep = riesgos.filter((x) => x.reporte_id === r.id);
@@ -202,7 +211,10 @@ function NivelCiudad(p: { codigo: string; ciuByCodigo: Map<string, Ciudad>; repo
 
   return (
     <>
-      <Breadcrumb region={ciu.region} ciudad={ciu.nombre} />
+      <FilaBreadcrumb>
+        <Breadcrumb region={ciu.region} ciudad={ciu.nombre} />
+        <BotonExportarPdf nombreArchivo={`Analisis_TIC_${ciu.nombre}_${r.fecha_corte ?? ""}`} />
+      </FilaBreadcrumb>
       <Bloque titulo={`${ciu.nombre} · Región ${ciu.region}`} hint={`Reporte ${r.estado}${r.fecha_corte ? ` · corte ${r.fecha_corte}` : ""}`}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {DIMS.map((d) => {
@@ -237,6 +249,9 @@ function NivelCiudad(p: { codigo: string; ciuByCodigo: Map<string, Ciudad>; repo
 }
 
 // Presentación (compartida con /analisis)
+function FilaBreadcrumb({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-wrap items-center justify-between gap-2">{children}</div>;
+}
 function Breadcrumb({ region, ciudad }: { region: string; ciudad?: string }) {
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm text-steel print:hidden">
