@@ -23,7 +23,7 @@ async function descargar(blob: Blob, nombreArchivo: string) {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
-function BotonBase({ generar }: { generar: () => Promise<void> }) {
+function BotonBase({ generar, oscuro }: { generar: () => Promise<void>; oscuro?: boolean }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,17 +39,18 @@ function BotonBase({ generar }: { generar: () => Promise<void> }) {
     }
   }
 
+  // Variante clara: para toolbars sobre fondo blanco/gris (fichas de central).
+  // Variante oscura: para el Masthead navy (formulario del propio enlace).
+  const clases = oscuro
+    ? "rounded-md border border-steel px-3 py-1.5 text-[13px] font-semibold text-[#C6D5E2] transition hover:bg-steel/40 disabled:opacity-60"
+    : "rounded-md border border-line px-3 py-1.5 text-[13px] font-semibold text-navy transition hover:bg-paper disabled:opacity-60";
+
   return (
     <div className="flex items-center gap-2 print:hidden">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={cargando}
-        className="rounded-md border border-line px-3 py-1.5 text-[13px] font-semibold text-navy transition hover:bg-paper disabled:opacity-60"
-      >
+      <button type="button" onClick={onClick} disabled={cargando} className={clases}>
         {cargando ? "Generando PDF…" : "Descargar PDF"}
       </button>
-      {error && <span className="text-xs text-rojo">{error}</span>}
+      {error && <span className={`text-xs ${oscuro ? "text-[#F3B4B0]" : "text-rojo"}`}>{error}</span>}
     </div>
   );
 }
@@ -61,6 +62,7 @@ export function BotonDescargarFichaDepartamento({
   riesgos,
   temas,
   sistemas,
+  oscuro,
 }: {
   departamento: Departamento;
   reporte: Reporte;
@@ -68,9 +70,11 @@ export function BotonDescargarFichaDepartamento({
   riesgos: Riesgo[];
   temas: TemaCritico[];
   sistemas: SistemaActivo[];
+  oscuro?: boolean;
 }) {
   return (
     <BotonBase
+      oscuro={oscuro}
       generar={async () => {
         const [{ pdf }, { ReporteDepartamentoPDF }] = await Promise.all([
           import("@react-pdf/renderer"),
@@ -100,6 +104,7 @@ export function BotonDescargarFichaCiudad({
   riesgos,
   temas,
   sistemas,
+  oscuro,
 }: {
   ciudad: Ciudad;
   departamentoNombre: string;
@@ -108,9 +113,11 @@ export function BotonDescargarFichaCiudad({
   riesgos: RiesgoCiudad[];
   temas: TemaCiudad[];
   sistemas: SistemaCiudad[];
+  oscuro?: boolean;
 }) {
   return (
     <BotonBase
+      oscuro={oscuro}
       generar={async () => {
         const [{ pdf }, { ReporteCiudadPDF }] = await Promise.all([
           import("@react-pdf/renderer"),

@@ -95,7 +95,13 @@ garantiza el **RLS** de Supabase, no la UI.
       borrador (central/admin). En la ficha completa (`/reportes/[codigo]`,
       `/reportes-ciudad/[codigo]`), "Descargar PDF" genera un PDF real con
       diseño propio (`@react-pdf/renderer`, sin depender del diálogo de
-      impresión del navegador). En el análisis por departamento o ciudad
+      impresión del navegador); secciones sin datos se omiten y se renumeran
+      sin dejar huecos; los títulos de sección nunca quedan huérfanos al
+      final de una página (el título + la primera fila viajan juntos como
+      bloque atómico). El mismo botón "Descargar PDF" está disponible también
+      para el propio enlace en `/formulario` y `/formulario-ciudad`, para que
+      pueda descargar su ficha en cualquier momento. En el análisis por
+      departamento o ciudad
       (`/analisis`, `/analisis-ciudad`), "Exportar PDF" usa el diálogo de
       impresión del navegador (se elige "Guardar como PDF").
 - [x] **Fase 4 — Administración** (`/admin`): crear usuarios con correo +

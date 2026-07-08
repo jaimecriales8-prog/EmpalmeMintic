@@ -2,7 +2,8 @@ import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
 import { FormularioCiudad } from "@/components/formulario/formulario-ciudad";
-import type { ReporteCiudad, ProyectoCiudad, RiesgoCiudad, TemaCiudad, SistemaCiudad } from "@/lib/database.types";
+import { BotonDescargarFichaCiudad } from "@/components/reportes/boton-descargar-pdf";
+import type { Ciudad, ReporteCiudad, ProyectoCiudad, RiesgoCiudad, TemaCiudad, SistemaCiudad } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,20 @@ export default async function FormularioCiudadPage() {
         titulo="Instrumento de Estado TIC · Ciudad Capital"
         subtitulo="Diligencie el estado TIC de su ciudad. Su avance se guarda automáticamente."
         perfil={perfil}
-      />
+      >
+        {reporte && ciudad && (
+          <BotonDescargarFichaCiudad
+            ciudad={ciudad as Ciudad}
+            departamentoNombre={depNombre}
+            reporte={reporte as ReporteCiudad}
+            proyectos={proyectos}
+            riesgos={riesgos}
+            temas={temas}
+            sistemas={sistemas}
+            oscuro
+          />
+        )}
+      </Masthead>
       {reporte && ciudad ? (
         <FormularioCiudad
           ciudadNombre={ciudad.nombre}

@@ -2,6 +2,7 @@ import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
 import { FormularioEnlace } from "@/components/formulario/formulario-enlace";
+import { BotonDescargarFichaDepartamento } from "@/components/reportes/boton-descargar-pdf";
 import type { Reporte, Proyecto, Riesgo, TemaCritico, SistemaActivo } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,19 @@ export default async function FormularioPage() {
         titulo="Instrumento de Estado Departamental TIC"
         subtitulo="Diligencie cada sección y califique el semáforo de estado. Su avance se guarda automáticamente."
         perfil={perfil}
-      />
+      >
+        {reporte && departamento && (
+          <BotonDescargarFichaDepartamento
+            departamento={departamento}
+            reporte={reporte as Reporte}
+            proyectos={proyectos}
+            riesgos={riesgos}
+            temas={temas}
+            sistemas={sistemas}
+            oscuro
+          />
+        )}
+      </Masthead>
       {reporte && departamento ? (
         <FormularioEnlace
           departamento={departamento}
