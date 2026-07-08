@@ -3,6 +3,7 @@ import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
 import { NavCentral } from "@/components/nav-central";
+import { SubNavCiudades } from "@/components/ciudades/sub-nav-ciudades";
 import { AccionesCiudades } from "@/components/ciudades/acciones-ciudades";
 import { GraficosConsolidado } from "@/components/consolidado/graficos";
 import {
@@ -160,6 +161,7 @@ export default async function CiudadesPage() {
       </Masthead>
       <main className="mx-auto grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
         <NavCentral activo="ciudades" />
+        <SubNavCiudades activo="consolidado" />
         {reportes.length === 0 ? (
           <div className="rounded-xl border border-line bg-card p-10 text-center text-steel">
             Aún no hay reportes de ciudades enviados. Cuando un enlace de ciudad envíe su reporte, aparecerá aquí.

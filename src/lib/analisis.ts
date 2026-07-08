@@ -1,5 +1,14 @@
-import { DIMS } from "@/lib/consolidado";
-import type { Reporte, SeveridadRiesgo, TemaCritico, Departamento } from "@/lib/database.types";
+import { DIMS, severidadDe } from "@/lib/consolidado";
+import type {
+  Reporte,
+  SeveridadRiesgo,
+  TemaCritico,
+  Departamento,
+  ReporteCiudad,
+  RiesgoCiudad,
+  TemaCiudad,
+  Ciudad,
+} from "@/lib/database.types";
 
 export type Dist = { critico: number; riesgo: number; estable: number };
 
@@ -81,4 +90,47 @@ export function ordenarPorCriticidad(
     .map((r) => ({ reporte: r, departamento: depByCodigo.get(r.departamento_codigo)!, criticos: criticosDe(r) }))
     .filter((x) => x.departamento)
     .sort((a, b) => b.criticos - a.criticos || (a.departamento.nombre).localeCompare(b.departamento.nombre));
+}
+
+// ---- Variantes para ciudades (mismo modelo, campos propios) ----
+export function distCiudad(reportes: ReporteCiudad[]): Dist {
+  const d: Dist = { critico: 0, riesgo: 0, estable: 0 };
+  reportes.forEach((r) => {
+    DIMS.forEach((dim) => {
+      const v = (r as Record<string, unknown>)[`sem_${dim}`];
+      if (v === "critico" || v === "riesgo" || v === "estable") d[v]++;
+    });
+  });
+  return d;
+}
+export function criticosCiudad(r: ReporteCiudad): number {
+  return DIMS.filter((d) => (r as Record<string, unknown>)[`sem_${d}`] === "critico").length;
+}
+export function metricasCiudad(reportes: ReporteCiudad[], riesgos: RiesgoCiudad[], temas: TemaCiudad[]): Metricas {
+  const dist = distCiudad(reportes);
+  const riesgosAltos = riesgos.filter((x) => severidadDe(x.probabilidad, x.impacto).s >= 6).length;
+  let comunasSin = 0;
+  reportes.forEach((r) => (comunasSin += Number(r.comunas_sin_cobertura) || 0));
+  return {
+    reportes: reportes.length,
+    prom4g: promedio(reportes.map((r) => r.cobertura_4g)),
+    prom5g: promedio(reportes.map((r) => r.cobertura_5g)),
+    promHogares: promedio(reportes.map((r) => r.hogares_internet)),
+    mpiosSinCobertura: comunasSin,
+    personasFormadas: reportes.reduce((s, r) => s + (Number(r.personas_formadas) || 0), 0),
+    mpiosTramites: reportes.reduce((s, r) => s + (Number(r.tramites_municipales_linea) || 0), 0),
+    dist,
+    totalSemaforos: dist.critico + dist.riesgo + dist.estable,
+    riesgosAltos,
+    temasInmediatos: temas.filter((t) => (t.plazo ?? "").startsWith("Inmediato")).length,
+  };
+}
+export function ordenarCiudadesPorCriticidad(
+  reportes: ReporteCiudad[],
+  ciuByCodigo: Map<string, Ciudad>,
+): { reporte: ReporteCiudad; ciudad: Ciudad; criticos: number }[] {
+  return reportes
+    .map((r) => ({ reporte: r, ciudad: ciuByCodigo.get(r.ciudad_codigo)!, criticos: criticosCiudad(r) }))
+    .filter((x) => x.ciudad)
+    .sort((a, b) => b.criticos - a.criticos || a.ciudad.nombre.localeCompare(b.ciudad.nombre));
 }

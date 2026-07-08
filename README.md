@@ -68,6 +68,7 @@ ingresa en `/login` con ese correo y contraseña. También existe la opción de
 | `/consolidado` | central, admin | Dashboard regional (departamentos) |
 | `/analisis` | central, admin | Análisis por nivel (nacional/regional/departamental) |
 | `/ciudades` | central, admin | Consolidado de ciudades capitales |
+| `/analisis-ciudad` | central, admin | Análisis por nivel (nacional/regional/ciudad) |
 | `/reportes-ciudad/[codigo]` | central, admin | Detalle de un reporte de ciudad |
 | `/reportes/[codigo]` | central, admin | Detalle de un reporte |
 | `/admin` | admin | Gestión de perfiles |
