@@ -228,7 +228,7 @@ export default async function ConsolidadoPage() {
         <AccionesConsolidado filasCSV={filasCSV} />
       </Masthead>
 
-      <main className="mx-auto grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
+      <main className="mx-auto content-start grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
         <NavCentral activo="consolidado" />
         {reportes.length === 0 ? (
           <div className="rounded-xl border border-line bg-card p-10 text-center text-steel">

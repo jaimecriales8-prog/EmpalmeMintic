@@ -63,7 +63,7 @@ export default async function AnalisisPage({
         subtitulo="Lectura de la situación en tres niveles: nacional, regional y departamental."
         perfil={perfil}
       />
-      <main className="mx-auto grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
+      <main className="mx-auto content-start grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
         <NavCentral activo="analisis" />
         <SelectorNivel departamentos={departamentos} regionSel={regionSel} deptoSel={deptoSel} />
 

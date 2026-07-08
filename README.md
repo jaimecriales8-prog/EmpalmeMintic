@@ -92,9 +92,10 @@ garantiza el **RLS** de Supabase, no la UI.
       regional (vista `v_consolidado_regional`), riesgos por severidad (vista
       `v_severidad_riesgos`), agenda de temas, exportación CSV (`;` + BOM) e
       impresión. Detalle de reporte con acciones de validar y devolver a
-      borrador (central/admin). En `/analisis` y `/analisis-ciudad`, al entrar
-      a un departamento o ciudad específico aparece "Exportar PDF" (usa el
-      diálogo de impresión del navegador; se elige "Guardar como PDF").
+      borrador (central/admin). "Exportar PDF" disponible tanto en la ficha
+      completa (`/reportes/[codigo]`, `/reportes-ciudad/[codigo]`) como en el
+      análisis por departamento o ciudad (`/analisis`, `/analisis-ciudad`) —
+      usa el diálogo de impresión del navegador; se elige "Guardar como PDF".
 - [x] **Fase 4 — Administración** (`/admin`): crear usuarios con correo +
       departamento (rol por defecto enlace; también central/admin), listar y
       eliminar usuarios. Usa el service role solo en server actions. (El

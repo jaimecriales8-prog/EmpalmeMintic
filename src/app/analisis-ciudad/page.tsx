@@ -49,7 +49,7 @@ export default async function AnalisisCiudadPage({ searchParams }: { searchParam
   return (
     <>
       <Masthead titulo="Análisis de Ciudades Capitales" subtitulo="Lectura de la situación TIC en tres niveles: nacional, regional y por ciudad." perfil={perfil} />
-      <main className="mx-auto grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
+      <main className="mx-auto content-start grid w-full max-w-[1240px] flex-1 gap-5 px-6 py-6">
         <NavCentral activo="ciudades" />
         <SubNavCiudades activo="analisis" />
         <SelectorNivelCiudad ciudades={ciudades} regionSel={regionSel} ciudadSel={ciudadSel} />

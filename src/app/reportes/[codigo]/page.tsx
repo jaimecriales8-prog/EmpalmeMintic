@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
+import { BotonExportarPdf } from "@/components/analisis/boton-exportar-pdf";
 import { DIMS, SEM_ETIQUETA, pillClase, severidadDe, ESTADO_REPORTE_LABEL } from "@/lib/consolidado";
 import { cambiarEstadoReporte } from "./actions";
 import type { Reporte, Proyecto, Riesgo, TemaCritico, SistemaActivo } from "@/lib/database.types";
@@ -41,7 +42,7 @@ export default async function ReporteDetallePage({ params }: { params: Promise<{
   return (
     <>
       <Masthead titulo={`${departamento.nombre} · Reporte TIC`} subtitulo={`Región ${departamento.region}`} perfil={perfil} />
-      <main className="mx-auto grid w-full max-w-[1160px] flex-1 gap-5 px-6 py-6">
+      <main className="mx-auto content-start grid w-full max-w-[1160px] flex-1 gap-5 px-6 py-6">
         <div className="flex flex-wrap items-center gap-3 print:hidden">
           <Link href="/consolidado" className="text-sm font-semibold text-link hover:underline">
             ← Volver al consolidado
@@ -52,20 +53,25 @@ export default async function ReporteDetallePage({ params }: { params: Promise<{
               {rep.enviado_en ? ` · enviado ${new Date(rep.enviado_en).toLocaleDateString("es-CO")}` : ""}
             </span>
           )}
-          {rep && rep.estado !== "borrador" && (
-            <div className="ml-auto flex gap-2">
-              {rep.estado === "enviado" && (
-                <form action={cambiarEstadoReporte.bind(null, rep.id, departamento.codigo, "validar")}>
-                  <button className="rounded-md bg-verde px-3.5 py-2 text-[13px] font-semibold text-white transition hover:brightness-110">
-                    Validar reporte
-                  </button>
-                </form>
+          {rep && (
+            <div className="ml-auto flex items-center gap-2">
+              {rep.estado !== "borrador" && (
+                <>
+                  {rep.estado === "enviado" && (
+                    <form action={cambiarEstadoReporte.bind(null, rep.id, departamento.codigo, "validar")}>
+                      <button className="rounded-md bg-verde px-3.5 py-2 text-[13px] font-semibold text-white transition hover:brightness-110">
+                        Validar reporte
+                      </button>
+                    </form>
+                  )}
+                  <form action={cambiarEstadoReporte.bind(null, rep.id, departamento.codigo, "devolver")}>
+                    <button className="rounded-md border border-line px-3.5 py-2 text-[13px] font-semibold text-navy transition hover:bg-paper">
+                      Devolver a borrador
+                    </button>
+                  </form>
+                </>
               )}
-              <form action={cambiarEstadoReporte.bind(null, rep.id, departamento.codigo, "devolver")}>
-                <button className="rounded-md border border-line px-3.5 py-2 text-[13px] font-semibold text-navy transition hover:bg-paper">
-                  Devolver a borrador
-                </button>
-              </form>
+              <BotonExportarPdf nombreArchivo={`Ficha_TIC_${departamento.nombre}_${rep.fecha_corte ?? ""}`} />
             </div>
           )}
         </div>
