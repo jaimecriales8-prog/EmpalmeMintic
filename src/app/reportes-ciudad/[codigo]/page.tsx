@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
-import { BotonExportarPdf } from "@/components/analisis/boton-exportar-pdf";
+import { BotonDescargarFichaCiudad } from "@/components/reportes/boton-descargar-pdf";
 import { DIMS, SEM_ETIQUETA, pillClase, severidadDe, ESTADO_REPORTE_LABEL } from "@/lib/consolidado";
 import { cambiarEstadoReporteCiudad } from "./actions";
 import type { Ciudad, ReporteCiudad, ProyectoCiudad, RiesgoCiudad, TemaCiudad, SistemaCiudad } from "@/lib/database.types";
@@ -60,7 +60,15 @@ export default async function ReporteCiudadDetalle({ params }: { params: Promise
                   </form>
                 </>
               )}
-              <BotonExportarPdf nombreArchivo={`Ficha_TIC_${ciu.nombre}_${rep.fecha_corte ?? ""}`} />
+              <BotonDescargarFichaCiudad
+                ciudad={ciu}
+                departamentoNombre={ciu.departamentos?.nombre ?? ""}
+                reporte={rep}
+                proyectos={proyectos}
+                riesgos={riesgos}
+                temas={temas}
+                sistemas={sistemas}
+              />
             </div>
           )}
         </div>

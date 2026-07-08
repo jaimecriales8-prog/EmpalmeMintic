@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Masthead } from "@/components/masthead";
-import { BotonExportarPdf } from "@/components/analisis/boton-exportar-pdf";
+import { BotonDescargarFichaDepartamento } from "@/components/reportes/boton-descargar-pdf";
 import { DIMS, SEM_ETIQUETA, pillClase, severidadDe, ESTADO_REPORTE_LABEL } from "@/lib/consolidado";
 import { cambiarEstadoReporte } from "./actions";
 import type { Reporte, Proyecto, Riesgo, TemaCritico, SistemaActivo } from "@/lib/database.types";
@@ -71,7 +71,14 @@ export default async function ReporteDetallePage({ params }: { params: Promise<{
                   </form>
                 </>
               )}
-              <BotonExportarPdf nombreArchivo={`Ficha_TIC_${departamento.nombre}_${rep.fecha_corte ?? ""}`} />
+              <BotonDescargarFichaDepartamento
+                departamento={departamento}
+                reporte={rep}
+                proyectos={proyectos}
+                riesgos={riesgos}
+                temas={temas}
+                sistemas={sistemas}
+              />
             </div>
           )}
         </div>
